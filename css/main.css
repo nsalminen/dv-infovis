@@ -1,0 +1,33 @@
+.counties {
+    fill: lightgray;
+}
+
+.states {
+    fill: lightgray;
+}
+
+.counties :hover {
+    fill: darkgray;
+}
+
+.states :hover {
+    fill: darkgray;
+}
+
+.county-borders {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 0.5px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    pointer-events: none;
+}
+
+.state-borders {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 1px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    pointer-events: none;
+}

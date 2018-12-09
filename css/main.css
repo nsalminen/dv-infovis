@@ -1,9 +1,11 @@
 .counties {
     fill: lightgray;
+    pointer-events: none;
 }
 
 .states {
-    fill: lightgray;
+    pointer-events: fill;
+    fill: none;
 }
 
 .counties :hover {
@@ -11,7 +13,7 @@
 }
 
 .states :hover {
-    fill: darkgray;
+    fill: rgba(169, 169, 169, 0.51);
 }
 
 .county-borders {

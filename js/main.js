@@ -22,13 +22,15 @@ function startAnimate() {
         console.log(date.toDateString());
         var start =Date.now();
         let state = 'TX';
-        colorDrought(date).then(result => {
+        var colorPromise = colorDrought(date);
+        date = addDays(date, 30);
+        colorPromise.then(result => {
             var end = Date.now();
             var diff = end - start;
             console.log("done in: " + diff);
+            loadDrought(date.getFullYear())
         });
-        date = addDays(date, 30);
-    }, 5000);
+    }, 1000);
 }
 
 async function plotStates() {
@@ -63,13 +65,14 @@ function plotCounties() {
             reject(error);
 
         this.counties = topojson.feature(us, us.objects.counties).features;
-
+        this.countiesMap = new Map(this.counties.map(i => [parseInt(i.id), i]));
         svg.append("g")
             .attr("class", "counties")
             .selectAll("path")
             .data(counties)
             .enter().append("path")
-            .attr("d", path);
+            .attr("d", path)
+            .attr("id", (i) => parseInt(i.id));
 
         svg.append("path")
             .attr("class", "county-borders")
@@ -81,11 +84,6 @@ function plotCounties() {
         resolve();
     });
     });
-}
-
-function loadData() {
-    d3.csv("data/split/dm_export_19920101_20151231 (12).csv", analyze)
-    //  d3.csv("data/combined_drought.csv", analyze)
 }
 
 async function loadDrought(year, state) {
@@ -100,8 +98,8 @@ async function loadDrought(year, state) {
     if (!(state in this.drought[year])) {
         // store the promise so that the data will be loaded once.
         this.drought[year][state] = new Promise(function (resolve, reject){
-            console.log("Start reading " + year + " " + state);
-            d3.csv("data/split/drought_"+year+"_"+state+".csv", function(error, request) {
+          //  console.log("Start reading " + year + " " + state);
+            d3.csv("data/split/drought/"+year+"/"+state+".csv", function(error, request) {
                 if(error) {
                     console.log(error);
                     reject(error);
@@ -121,38 +119,48 @@ function addDays(date, days) {
     return result;
 }
 
+
+function calculateColor(drought) {
+    if (drought !== undefined) {
+        var droughtFactor = drought.D0 * 0.2 + drought.D1 * 0.4 + drought.D2 * 0.6 + drought.D3 * 0.8 + drought.D4 * 1;
+        droughtFactor = droughtFactor / 100;
+        return d3.interpolateHcl('#00AA00', '#AA0000')(droughtFactor);
+    } else {
+        return "light-gray";
+    }
+}
+function colorMap() {
+    svg.selectAll(".counties > path").data(counties).attr("d", path).attr("fill", function (d) {
+        return calculateColor(d.drought);
+    });
+}
+
+function filterData(drought, date) {
+    var filtered = drought.filter(function (d) {
+        let endDate = Date.parse(d.ValidEnd);
+        let startDate = Date.parse(d.ValidStart);
+        return startDate <= date && endDate >= date
+    });
+
+    //much faster than colorMap
+    filtered.forEach(function (d) {
+        let fips = parseInt(d.FIPS);
+        let element = document.getElementById(fips);
+        if (element !== null) {
+            element.style.fill = calculateColor(d);
+        }
+    });
+}
+
 async function colorDrought(date, state) {
-    if(state === undefined) {
+    if (state === undefined) {
         return Promise.all(this.states.map(s => colorDrought(date, s.Code)));
     }
 
-    return new Promise( resolve => {
+    return new Promise(resolve => {
         let year = date.getFullYear();
-        loadDrought(year, state).then( function(drought) {
-            var filtered = drought.filter(function (d) {
-                let endDate = Date.parse(d.ValidEnd);
-                let startDate = Date.parse(d.ValidStart);
-                return startDate <= date && endDate >= date
-            });
-
-            filtered.forEach(function (d) {
-                counties.filter(function (c) {
-                    return parseInt(c.id) === parseInt(d.FIPS);
-                }).forEach(function (c) {
-                    c.drought = d
-                })
-            });
-
-            svg.selectAll(".counties > path").data(counties).attr("d", path).attr("fill", function (d) {
-                if (d.drought !== undefined) {
-                    var droughtFactor = d.drought.D0 * 0.2 + d.drought.D1 * 0.4 + d.drought.D2 * 0.6 + d.drought.D3 * 0.8 + d.drought.D4 * 1;
-                    droughtFactor = droughtFactor / 100;
-                    return d3.interpolateHcl('#00AA00', '#AA0000')(droughtFactor);
-                } else {
-                    return "light-gray";
-                }
-            });
-
+        loadDrought(year, state).then(function (drought) {
+            filterData(drought, date);
             resolve('done')
         });
     })

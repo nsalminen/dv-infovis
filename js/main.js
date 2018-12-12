@@ -17,7 +17,7 @@ function plotUS() {
 }
 
 function startAnimate() {
-    var date = new Date(2001,0,1);
+    var date = new Date(Date.UTC(2001,0,1,0,0,0));
     window.setInterval(function() {
         console.log(date.toDateString());
         var start =Date.now();
@@ -135,13 +135,70 @@ function colorMap() {
     });
 }
 
-function filterData(drought, date) {
-    var filtered = drought.filter(function (d) {
+
+/**
+ * Use binary search to find the first record that has the date in its range.
+ * @param data
+ * @param date
+ * @returns {number} the index of the first record.
+ */
+function searchStart(data, date) {
+    let lower = 0;
+    let upper = data.length - 1;
+    while (lower < upper) {
+        let index = Math.round((lower + upper) / 2);
+        let d = data[index];
+        let startDate = Date.parse(d.ValidStart);
+        if (startDate > date) {
+            if (upper == index)
+                break;
+            upper = index;
+            continue;
+        }
+        let endDate = Date.parse(d.ValidEnd);
+        if (endDate < date) {
+            if (lower == index)
+                break;
+            lower = index;
+            continue;
+        }
+        while (index > 0) {
+            index--;
+            if (Date.parse(data[index].ValidEnd) < date){
+                return index + 1;
+            }
+        }
+        return index;
+    }
+    return lower
+
+}
+
+
+function getFiler(drought, date) {
+    let start = searchStart(drought, date);
+    for(let index = start; index < drought.length; index++) {
+        let start = Date.parse(drought[index].ValidStart);
+        if (start > date)
+            return;
+        colorElement(drought[index])
+
+    }
+   /* return drought.filter(function (d) {
         let endDate = Date.parse(d.ValidEnd);
         let startDate = Date.parse(d.ValidStart);
         return startDate <= date && endDate >= date
-    });
+    });*/
+}
 
+function colorElement(d) {
+    let fips = parseInt(d.FIPS);
+    let element = document.getElementById(fips);
+    if (element !== null) {
+        element.style.fill = calculateColor(d);
+    }
+}
+function doColoring(filtered) {
     //much faster than colorMap
     filtered.forEach(function (d) {
         let fips = parseInt(d.FIPS);
@@ -150,6 +207,10 @@ function filterData(drought, date) {
             element.style.fill = calculateColor(d);
         }
     });
+}
+function filterData(drought, date) {
+    let filtered = getFiler(drought, date)
+  //  doColoring(filtered);
 }
 
 async function colorDrought(date, state) {

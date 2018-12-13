@@ -1,4 +1,10 @@
-var svg = d3.select("svg");
+var svg = d3.select('.map-container').append("svg")
+    .attr("width", '100%')
+    .attr("height", '100%')
+    .attr('viewBox','0 0 960 600')
+    .attr('preserveAspectRatio','xMinYMin')
+    .append("g");
+
 var projection = d3.geoAlbersUsa()
     .scale(1280) // Scale taken from projection of us-10m.v1.json
     .translate([960 / 2, 600 / 2]);

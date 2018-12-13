@@ -99,7 +99,7 @@ async function loadDrought(year, state) {
         // store the promise so that the data will be loaded once.
         this.drought[year][state] = new Promise(function (resolve, reject){
           //  console.log("Start reading " + year + " " + state);
-            d3.csv("data/split/drought/"+year+"/"+state+".csv", function(error, request) {
+            d3.csv("data/drought/"+year+"/"+state+".csv", function(error, request) {
                 if(error) {
                     console.log(error);
                     reject(error);

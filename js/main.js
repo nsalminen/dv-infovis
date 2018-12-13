@@ -21,16 +21,15 @@ function plotUS() {
 }
 
 function startAnimate() {
-    var date = new Date(Date.UTC(2001,0,1,0,0,0));
+    let date = new Date(Date.UTC(2001,0,1,0,0,0));
     window.setInterval(function() {
         console.log(date.toDateString());
-        var start =Date.now();
-        let state = 'TX';
-        var colorPromise = colorDrought(date);
+        let start =Date.now();
+        let colorPromise = colorDrought(date);
         date = addDays(date, 30);
         colorPromise.then(result => {
-            var end = Date.now();
-            var diff = end - start;
+            let end = Date.now();
+            let diff = end - start;
             console.log("done in: " + diff);
             loadDrought(date.getFullYear())
         });
@@ -144,7 +143,7 @@ function addDays(date, days) {
 
 function calculateColor(drought) {
     if (drought !== undefined) {
-        var droughtFactor = drought.D0 * 0.2 + drought.D1 * 0.4 + drought.D2 * 0.6 + drought.D3 * 0.8 + drought.D4 * 1;
+        let droughtFactor = drought.D0 * 0.2 + drought.D1 * 0.4 + drought.D2 * 0.6 + drought.D3 * 0.8 + drought.D4 * 1;
         droughtFactor = droughtFactor / 100;
         return d3.interpolateHcl('#00AA00', '#AA0000')(droughtFactor);
     } else {
@@ -198,20 +197,14 @@ function searchStart(data, date) {
 }
 
 
-function getFiler(drought, date) {
+function setDroughtColor(drought, date) {
     let start = searchStart(drought, date);
     for(let index = start; index < drought.length; index++) {
         let start = Date.parse(drought[index].ValidStart);
         if (start > date)
             return;
         colorElement(drought[index])
-
     }
-   /* return drought.filter(function (d) {
-        let endDate = Date.parse(d.ValidEnd);
-        let startDate = Date.parse(d.ValidStart);
-        return startDate <= date && endDate >= date
-    });*/
 }
 
 function colorElement(d) {
@@ -222,22 +215,6 @@ function colorElement(d) {
     }
 }
 
-function doColoring(filtered) {
-    //much faster than colorMap
-    filtered.forEach(function (d) {
-        let fips = parseInt(d.FIPS);
-        let element = document.getElementById(fips);
-        if (element !== null) {
-            element.style.fill = calculateColor(d);
-        }
-    });
-}
-
-function filterData(drought, date) {
-    let filtered = getFiler(drought, date)
-  //  doColoring(filtered);
-}
-
 async function colorDrought(date, state) {
     if (state === undefined) {
         return Promise.all(this.states.map(s => colorDrought(date, s.Code)));
@@ -246,7 +223,7 @@ async function colorDrought(date, state) {
     return new Promise(resolve => {
         let year = date.getFullYear();
         loadDrought(year, state).then(function (drought) {
-            filterData(drought, date);
+            setDroughtColor(drought, date);
             resolve('done')
         });
     })

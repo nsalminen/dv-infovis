@@ -19,7 +19,7 @@
 .idea/**/dynamic.xml
 .idea/**/uiDesigner.xml
 .idea/**/dbnavigator.xml
-
+ 
 # Gradle
 .idea/**/gradle.xml
 .idea/**/libraries
@@ -67,3 +67,4 @@ fabric.properties
 
 # General
 .DS_Store
+data/

@@ -4,11 +4,85 @@ var path = d3.geoPath();
 this.drought = {};
 var graph = d3.select("#graph");
 plotUS();
-plotStackedGraph();
+let plot = new droughtAreaPlot();
+plot.initPlot();
+plotStackedGraph("TX");
 
-function plotStackedGraph() {
-    getDrougtData(new Date(Date.UTC(2001,0,1,2,0,0)), new Date(Date.UTC(2002,0,1,0,0,0)),12,"TX")
+function droughtAreaPlot() {
+    let self = this;
+
+    function initPlot() {
+        let margin = {top: 20, right: 20, bottom: 30, left: 50};
+        let width = 960 - margin.left - margin.right;
+        let height = 500 - margin.top - margin.bottom;
+
+        self.x = d3.scaleTime().range([0, width]);
+        self.y = d3.scaleLinear().range([height, 0]).domain([0, 100]);
+
+        self.area = d3.area()
+            .curve(d3.curveMonotoneX)
+            .x(function (d) {
+                return self.x(d.data.date);
+            })
+            .y0(function (d) {
+                return self.y(d[0]);
+            })
+            .y1(function (d) {
+                return self.y(d[1]);
+            });
+
+        self.colors = d3.scaleOrdinal(d3.schemeCategory10);
+        self.stack = d3.stack().keys(["None", "D0", "D1", "D2", "D3", "D4"])
+            .order(d3.stackOrderReverse)
+            .offset(d3.stackOffsetNone)
+
+
+        self.plot = graph
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+
+        // add the X Axis
+        self.plot.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(self.x));
+
+        // add the Y Axis
+        self.plot.append("g")
+            .call(d3.axisLeft(self.y));
+    }
+
+    function plotDrought(plotData) {
+        self.x.domain(d3.extent(plotData, function (d) {
+            return d.date;
+        }));
+        let series = self.stack(plotData);
+
+        self.plot.selectAll('.droughtArea').data(series).exit().remove();
+        self.plot.selectAll('.droughtArea').data(series).enter()
+            .append("path").attr("class", "droughtArea");
+        self.plot.selectAll('.droughtArea').data(series)
+            .transition()
+            .duration(500)
+            .attr("d", self.area)
+            .style("fill", function (d, i) {
+                return self.colors(i);
+            });
+
+    }
+    return {
+        initPlot, plotDrought
+    }
 }
+
+
+function plotStackedGraph(state) {
+    getDrougtData(new Date(Date.UTC(2001,0,1,2,0,0)), new Date(Date.UTC(2002,0,1,0,0,0)),30,state)
+}
+
+
 
 function getDrougtData(startDate, endDate, steps, state) {
     let dataPromise = new Promise(function (resolve, reject) {
@@ -52,59 +126,14 @@ function getDrougtData(startDate, endDate, steps, state) {
             else
                 return {date: date, None: 0, D0: 0, D1: 0, D2: 0, D3: 0, D4: 0}
         });
-        plotDrought(plotData, startDate, endDate);
+        plot.plotDrought(plotData);
     })
 }
 
-
-function plotDrought(plotData, startDate, endDate) {
-    let margin = {top: 20, right: 20, bottom: 30, left: 50};
-    let width = 960 - margin.left - margin.right;
-    let height = 500 - margin.top - margin.bottom;
-
-    let x = d3.scaleTime().range([0, width]).domain(d3.extent(plotData, function(d) { return d.date; }));
-    let y = d3.scaleLinear().range([height, 0]).domain([0, 100]);
-
-    var area = d3.area()
-        .x(function(d) {
-            return x(d.data.date); })
-        .y0(function(d) {
-            return y( d[0]);
-        })
-        .y1(function(d) {
-            return y(d[1]); });
-
-    let colors = d3.scaleOrdinal(d3.schemeCategory10);
-    let stack = d3.stack().keys(["None", "D0", "D1", "D2", "D3", "D4"])
-        .order(d3.stackOrderReverse)
-        .offset(d3.stackOffsetNone)
-    var series = stack(plotData);
-
-    let plot =graph
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform",
-            "translate(" + margin.left + "," + margin.top + ")");
-    plot.selectAll('.test').data(series).enter()
-    .append("path")
-        .attr("class", "area test")
-        .attr("d", area)
-        .style("fill", function(d, i) {
-            return colors(i); });
-    // add the X Axis
-    plot.append("g")
-        .attr("transform", "translate(0," + height + ")")
-        .call(d3.axisBottom(x));
-
-    // add the Y Axis
-    plot.append("g")
-        .call(d3.axisLeft(y));
-}
-
+states = {}
 function plotUS() {
     d3.csv("data/states.csv", function(data) {
-       this.states = data;
+       states = data;
     });
     plotCounties()
         .then(result => plotStates())
@@ -119,6 +148,9 @@ function startAnimate() {
         let start =Date.now();
         let colorPromise = colorDrought(date);
         date = addDays(date, 30);
+        if (date.getFullYear() === 2002) {
+            date.setFullYear(2001);
+        }
         colorPromise.then(result => {
             let end = Date.now();
             let diff = end - start;
@@ -140,7 +172,19 @@ async function plotStates() {
                 .data(topojson.feature(us, us.objects.states).features)
                 .enter().append("path")
                 .attr("d", path)
-                .attr("d", path)
+                .attr("id", (i) => {
+                    let asf = parseInt(i.id)
+                })
+                .on("click", function(d) {
+                    let state = states.find(s => {
+                        return parseInt(s.Id) ==  parseInt(d.id);})
+                    if (state != undefined) {
+                        plotStackedGraph(state.Code);
+                        Console.log("clicked " + state.Code);
+                    }
+
+                });
+
 
             svg.append("path")
                 .attr("class", "state-borders")
@@ -184,7 +228,7 @@ function plotCounties() {
 
 async function loadDrought(year, state) {
     if(state === undefined) {
-        return Promise.all(this.states.map(s => loadDrought(year, s.Code)));
+        return Promise.all(states.map(s => loadDrought(year, s.Code)));
     }
 
     if (!(year in this.drought)) {
@@ -286,7 +330,7 @@ function colorElement(d) {
 
 async function colorDrought(date, state) {
     if (state === undefined) {
-        return Promise.all(this.states.map(s => colorDrought(date, s.Code)));
+        return Promise.all(states.map(s => colorDrought(date, s.Code)));
     }
 
     return new Promise(resolve => {

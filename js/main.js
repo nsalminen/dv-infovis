@@ -1,10 +1,106 @@
-var svg = d3.select("svg");
+var svg = d3.select("#map");
 var path = d3.geoPath();
 
 this.drought = {};
-
+var graph = d3.select("#graph");
 plotUS();
+plotStackedGraph();
 
+function plotStackedGraph() {
+    getDrougtData(new Date(Date.UTC(2001,0,1,2,0,0)), new Date(Date.UTC(2002,0,1,0,0,0)),12,"TX")
+}
+
+function getDrougtData(startDate, endDate, steps, state) {
+    let dataPromise = new Promise(function (resolve, reject) {
+        //  console.log("Start reading " + year + " " + state);
+        d3.csv("data/drought/state/" + state + ".csv", function (error, data) {
+            if (error) {
+                console.log(error);
+                reject(error);
+            } else {
+                let filtered = data.filter(d => {
+                    let start = Date.parse(d.ValidStart);
+                    let end = addDays(Date.parse(d.ValidEnd),1);
+                    return start <= endDate && end >= startDate
+                });
+                resolve(filtered);
+            }
+        });
+    });
+
+    let diff = endDate - startDate;
+    let dayStep = Math.max(Math.floor(diff / (1000 * 60 * 60 * 24 * steps)), 1);
+    let dateRange = d3.timeDays(startDate, endDate, dayStep);
+    dataPromise.then(data => {
+        let plotData = dateRange.map(date => {
+            let record = data.find(d => {
+                let start = Date.parse(d.ValidStart);
+                let end = addDays(Date.parse(d.ValidEnd),1);
+                return start <= date && end > date
+            });
+
+            if (record !== undefined)
+                return {
+                    date: date,
+                    None: parseFloat(record["None"]),
+                    D0: parseFloat(record["D0"]),
+                    D1: parseFloat(record["D1"]),
+                    D2: parseFloat(record["D2"]),
+                    D3: parseFloat(record["D3"]),
+                    D4: parseFloat(record["D4"])
+                }
+            else
+                return {date: date, None: 0, D0: 0, D1: 0, D2: 0, D3: 0, D4: 0}
+        });
+        plotDrought(plotData, startDate, endDate);
+    })
+}
+
+
+function plotDrought(plotData, startDate, endDate) {
+    let margin = {top: 20, right: 20, bottom: 30, left: 50};
+    let width = 960 - margin.left - margin.right;
+    let height = 500 - margin.top - margin.bottom;
+
+    let x = d3.scaleTime().range([0, width]).domain(d3.extent(plotData, function(d) { return d.date; }));
+    let y = d3.scaleLinear().range([height, 0]).domain([0, 100]);
+
+    var area = d3.area()
+        .x(function(d) {
+            return x(d.data.date); })
+        .y0(function(d) {
+            return y( d[0]);
+        })
+        .y1(function(d) {
+            return y(d[1]); });
+
+    let colors = d3.scaleOrdinal(d3.schemeCategory10);
+    let stack = d3.stack().keys(["None", "D0", "D1", "D2", "D3", "D4"])
+        .order(d3.stackOrderReverse)
+        .offset(d3.stackOffsetNone)
+    var series = stack(plotData);
+
+    let plot =graph
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+    plot.selectAll('.test').data(series).enter()
+    .append("path")
+        .attr("class", "area test")
+        .attr("d", area)
+        .style("fill", function(d, i) {
+            return colors(i); });
+    // add the X Axis
+    plot.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x));
+
+    // add the Y Axis
+    plot.append("g")
+        .call(d3.axisLeft(y));
+}
 
 function plotUS() {
     d3.csv("data/states.csv", function(data) {
@@ -43,6 +139,7 @@ async function plotStates() {
                 .selectAll("path")
                 .data(topojson.feature(us, us.objects.states).features)
                 .enter().append("path")
+                .attr("d", path)
                 .attr("d", path)
 
             svg.append("path")

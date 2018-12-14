@@ -1,4 +1,11 @@
+
 var svg = d3.select("#map");
+
+var projection = d3.geoAlbersUsa()
+    .scale(1280) // Scale taken from projection of us-10m.v1.json
+    .translate([960 / 2, 600 / 2]);
+var pathProjection = d3.geoPath().projection(projection);
+
 var path = d3.geoPath();
 
 this.drought = {};
@@ -106,7 +113,6 @@ function plotStackedGraph(state) {
 }
 
 
-
 function getDrougtData(startDate, endDate, steps, state) {
     let dataPromise = new Promise(function (resolve, reject) {
         //  console.log("Start reading " + year + " " + state);
@@ -154,12 +160,14 @@ function getDrougtData(startDate, endDate, steps, state) {
 }
 
 states = {}
+
 function plotUS() {
     d3.csv("data/states.csv", function(data) {
        states = data;
     });
     plotCounties()
         .then(result => plotStates())
+        .then(result => plotMTBS())
         .then(result => loadDrought(2001))
         .then(result => startAnimate());
 }
@@ -276,6 +284,24 @@ async function loadDrought(year, state) {
     return this.drought[year][state];
 }
 
+async function plotMTBS() {
+    console.log("Plotting MTBS")
+    return new Promise((resolve, reject) => {
+        d3.json("data/mtbs_perims_DD_2000_2015.json", function (error, fireArea) {
+            if (error) reject(error);
+            console.log(fireArea.objects);
+            svg.append("g")
+                .attr("class", "fireArea")
+                .selectAll("path")
+                .data(topojson.feature(fireArea, fireArea.objects.mtbs_perims_DD).features)
+                .enter().append("path")
+                .attr("d", pathProjection);
+            console.log(topojson.feature(fireArea, fireArea.objects.mtbs_perims_DD).features.length)
+            resolve();
+        });
+    });
+}
+
 function addDays(date, days) {
     let result = new Date(date);
     result.setDate(result.getDate() + days);
@@ -291,6 +317,12 @@ function calculateColor(drought) {
     } else {
         return "light-gray";
     }
+}
+
+function colorMap() {
+    svg.selectAll(".counties > path").data(counties).attr("d", path).attr("fill", function (d) {
+        return calculateColor(d.drought);
+    });
 }
 
 

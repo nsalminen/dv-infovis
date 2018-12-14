@@ -12,7 +12,7 @@ function droughtAreaPlot() {
     let self = this;
 
     function initPlot() {
-        let margin = {top: 20, right: 20, bottom: 30, left: 50};
+        let margin = {top: 20, right: 100, bottom: 30, left: 50};
         let width = 960 - margin.left - margin.right;
         let height = 500 - margin.top - margin.bottom;
 
@@ -31,8 +31,11 @@ function droughtAreaPlot() {
                 return self.y(d[1]);
             });
 
-        self.colors = d3.scaleOrdinal(d3.schemeCategory10);
-        self.stack = d3.stack().keys(["None", "D0", "D1", "D2", "D3", "D4"])
+        self.keys = ["None", "D0", "D1", "D2", "D3", "D4"]
+
+        self.colors = d3.scaleOrdinal(d3.schemeCategory10).domain(self.keys);
+
+        self.stack = d3.stack().keys(self.keys)
             .order(d3.stackOrderReverse)
             .offset(d3.stackOffsetNone)
 
@@ -52,6 +55,26 @@ function droughtAreaPlot() {
         // add the Y Axis
         self.plot.append("g")
             .call(d3.axisLeft(self.y));
+
+        self.legend = graph.selectAll(".legend")
+            .data(self.colors.domain()).enter()
+            .append("g")
+            .attr("class","legend")
+            .attr("transform", "translate(" + (width +70 ) + "," + (margin.top+10)+ ")");
+
+        self.legend.append("rect")
+            .attr("x", 0)
+            .attr("y", function(d, i) { return 20 * i; })
+            .attr("width", 10)
+            .attr("height", 10)
+            .style("fill", function(d, i) {
+                return self.colors(i);});
+
+        self.legend.append("text")
+            .attr("x", 20)
+            .attr("dy", "0.75em")
+            .attr("y", function(d, i) { return 20 * i; })
+            .text(function(d) {return d});
     }
 
     function plotDrought(plotData) {

@@ -11,22 +11,70 @@ var projection = d3.geoAlbersUsa()
 var pathProjection = d3.geoPath().projection(projection);
 var path = d3.geoPath();
 
+var initJobCount = 5;
+
 this.drought = {};
 
+initTimeline();
 plotUS();
 
+function finishInit(){
+    updateInitText("Done")
+    $('.fade').fadeOut(300)
+}
+
+function updateInitText(text) {
+    $('#init-progress-text').fadeOut(300, function() {
+        $(this).text(text + "...").fadeIn(400);
+    });
+}
+
 function plotUS() {
-    d3.csv("data/states.csv", function(data) {
-       this.states = data;
+    updateInitText("Plotting map");
+    d3.csv("data/states.csv", function (data) {
+        this.states = data;
     });
     plotCounties()
         .then(result => plotStates())
         .then(result => plotMTBS())
         .then(result => loadDrought(2001))
-        .then(result => startAnimate());
+        .then(result => startAnimate())
+        .then(result => finishInit());
+}
+
+function initTimeline(){
+    updateInitText("Loading timeline");
+    var lang = "en-US";
+    var year = 2018;
+
+    function dateToTS (date) {
+        return date.valueOf();
+    }
+
+    function tsToDate (ts) {
+        var d = new Date(ts);
+
+        return d.toLocaleDateString(lang, {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+
+    $(".date-slider").ionRangeSlider({
+        skin: "flat",
+        type: "double",
+        grid: true,
+        min: dateToTS(new Date(2000, 0, 1)),
+        max: dateToTS(new Date(2015, 11, 31)),
+        from: dateToTS(new Date(2005, 10, 8)),
+        to: dateToTS(new Date(2005, 12, 23)),
+        prettify: tsToDate
+    });
 }
 
 function startAnimate() {
+    console.log("start");
     let date = new Date(Date.UTC(2001,0,1,0,0,0));
     window.setInterval(function() {
         console.log(date.toDateString());
@@ -40,9 +88,11 @@ function startAnimate() {
             loadDrought(date.getFullYear())
         });
     }, 1000);
+    console.log("Hello");
 }
 
 async function plotStates() {
+    updateInitText("Plotting US states");
     return new Promise((resolve, reject) => {
         d3.json("https://d3js.org/us-10m.v1.json", function (error, us) {
             if (error)
@@ -68,6 +118,7 @@ async function plotStates() {
 }
 
 function plotCounties() {
+    updateInitText("Plotting US counties");
     return new Promise((resolve, reject) => {
     d3.json("https://d3js.org/us-10m.v1.json", function (error, us) {
         if (error)
@@ -96,6 +147,7 @@ function plotCounties() {
 }
 
 async function loadDrought(year, state) {
+    updateInitText("Loading drought data");
     if(state === undefined) {
         return Promise.all(this.states.map(s => loadDrought(year, s.Code)));
     }
@@ -145,7 +197,6 @@ function addDays(date, days) {
     result.setDate(result.getDate() + days);
     return result;
 }
-
 
 function calculateColor(drought) {
     if (drought !== undefined) {

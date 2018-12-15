@@ -36,6 +36,43 @@ body {
     max-height: inherit;
 }
 
+.timeline-container {
+    padding: 40px;
+}
+
+.irs-from {
+    background-color: #F4512C !important;
+}
+
+.irs-to {
+    background-color: #F4512C !important;
+}
+
+.irs-single {
+    background-color: #F4512C !important;
+}
+
+.irs-bar {
+    background-color: #F4512C !important;
+}
+
+.fade {
+    content: " ";
+    z-index: 1000;
+    display: block;
+    position: absolute;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.75) !important;
+    padding: 12% !important;
+    text-align: center;
+}
+
+.fade .bar {
+}
+
 .panel .empty {
     height: 100%;
 }

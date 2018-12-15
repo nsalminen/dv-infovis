@@ -5,6 +5,8 @@ var svg = d3.select('.map-container').append("svg")
     .attr('preserveAspectRatio','xMinYMin')
     .append("g");
 
+var graph = d3.select('.plot-container').append("svg");
+
 var projection = d3.geoAlbersUsa()
     .scale(1280) // Scale taken from projection of us-10m.v1.json
     .translate([960 / 2, 600 / 2]);
@@ -17,20 +19,33 @@ var initJobCount = 5;
 this.drought = {};
 
 initTimeline();
-var graph = d3.select("#graph");
 
 plotUS();
 let plot = new droughtAreaPlot();
 plot.initPlot();
 plotStackedGraph("TX");
 
+$(window).on('resize', function(){
+    graph.remove();
+    graph = d3.select('.plot-container').append("svg");
+    plot = new droughtAreaPlot();
+    plot.initPlot();
+    plotStackedGraph("TX");
+});
+
 function droughtAreaPlot() {
     let self = this;
 
     function initPlot() {
-        let margin = {top: 20, right: 100, bottom: 30, left: 50};
-        let width = 960 - margin.left - margin.right;
-        let height = 500 - margin.top - margin.bottom;
+        innerHeight = $( ".plot-container" ).innerHeight();
+        innerWidth = $( ".plot-container" ).innerWidth();
+        console.log(innerHeight);
+        console.log(innerWidth);
+        graph.attr("width", innerWidth).attr("height", innerHeight);
+        let margin = {top: 10, right: 100, bottom: 50, left: 50};
+        let width = innerWidth - margin.left - margin.right;
+        let height = innerHeight - margin.top - margin.bottom;
+        console.log("widht: " + width)
 
         self.x = d3.scaleTime().range([0, width]);
         self.y = d3.scaleLinear().range([height, 0]).domain([0, 100]);
@@ -226,10 +241,9 @@ function initTimeline(){
 }
 
 function startAnimate() {
-    console.log("start");
     let date = new Date(Date.UTC(2001,0,1,0,0,0));
     window.setInterval(function() {
-        console.log(date.toDateString());
+        //console.log(date.toDateString());
         let start =Date.now();
         let colorPromise = colorDrought(date);
         date = addDays(date, 30);
@@ -239,11 +253,10 @@ function startAnimate() {
         colorPromise.then(result => {
             let end = Date.now();
             let diff = end - start;
-            console.log("done in: " + diff);
+            //console.log("done in: " + diff);
             loadDrought(date.getFullYear())
         });
     }, 1000);
-    console.log("Hello");
 }
 
 async function plotStates() {

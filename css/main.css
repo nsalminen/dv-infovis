@@ -34,6 +34,8 @@ body {
     padding: 0.4rem;
     border-radius: .1rem;
     max-height: inherit;
+    height: 100%;
+    width: 100%;
 }
 
 .timeline-container {

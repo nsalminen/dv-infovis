@@ -1,3 +1,82 @@
+body {
+    fill: white;
+}
+
+.container {
+    padding: .4rem .8rem;
+}
+
+.lower {
+    padding: .4rem;
+}
+
+.upper {
+    padding: .4rem;
+}
+
+.upper .panel {
+    height: 70.5vh;
+    background-color: white;
+}
+
+.lower .panel {
+    height: 23vh;
+    background-color: white;
+}
+
+.map-container {
+    padding: 0.4rem;
+    border-radius: .1rem;
+    height: 100%;
+}
+
+.plot-container {
+    padding: 0.4rem;
+    border-radius: .1rem;
+    max-height: inherit;
+}
+
+.timeline-container {
+    padding: 40px;
+}
+
+.irs-from {
+    background-color: #F4512C !important;
+}
+
+.irs-to {
+    background-color: #F4512C !important;
+}
+
+.irs-single {
+    background-color: #F4512C !important;
+}
+
+.irs-bar {
+    background-color: #F4512C !important;
+}
+
+.fade {
+    content: " ";
+    z-index: 1000;
+    display: block;
+    position: absolute;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.75) !important;
+    padding: 12% !important;
+    text-align: center;
+}
+
+.fade .bar {
+}
+
+.panel .empty {
+    height: 100%;
+}
+
 .counties {
     fill: lightgray;
     pointer-events: none;

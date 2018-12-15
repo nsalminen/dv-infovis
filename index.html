@@ -1,11 +1,86 @@
 <!DOCTYPE html>
 <head>
+    <link rel="stylesheet" type="text/css" href="css/spectre.css">
+    <link rel="stylesheet" type="text/css" href="css/spectre-icons.min.css">
+    <link rel="stylesheet" type="text/css" href="css/ion.rangeSlider.min.css">
     <link rel="stylesheet" type="text/css" href="css/main.css">
+    <script
+            src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+    <script src="js/ion.rangeSlider.min.js"></script>
+    <meta charset="utf-8"/>
 </head>
 <body>
 
-<svg width="960" height="600" id="map"></svg>
-<svg width="960" height="600" id="graph"></svg>
+<div class="container bg-gray">
+    <div class="fade empty">
+        <div class="empty-icon">
+            <div class="loading loading-lg"></div>
+        </div>
+        <p class="empty-title h5">Loading components...</p>
+        <div class="empty-action">
+
+        </div>
+        <p class="empty-subtitle" id="init-progress-text"></p>
+    </div>
+    <div class="columns">
+        <div class="column col-7 upper">
+            <div class="panel bg-white">
+                <div class="panel-header text-center">
+                    <div class="panel-title h6">Map of the United States of America</div>
+                </div>
+                <div class="panel-body">
+                    <div class="map-container"></div>
+                </div>
+            </div>
+        </div>
+        <div class="column col-5 upper">
+            <div class="panel bg-white">
+                <div class="panel-header text-center">
+                    <div class="dropdown">
+                        <a href="#" class="btn btn-link dropdown-toggle" tabindex="0">
+                            Pick a plot<i class="icon icon-caret"></i>
+                        </a>
+                        <ul class="menu">
+                            <li class="menu-item">
+                                <a>Plot 1</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="empty">
+                    <div class="empty-icon">
+                        <i class="icon icon-upward"></i>
+                    </div>
+                    <p class="empty-title h5">Select a plot type</p>
+                    <p class="empty-subtitle">Click the dropdown above to select a plot</p>
+                    <svg id="graph"></svg>
+                </div>
+            </div>
+        </div>
+        <div class="column col-7 lower">
+            <div class="panel bg-white">
+                <div class="panel-body">
+                    <div class="timeline-container">
+                        <input type="text" class="date-slider" name="my_range" value="" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="column col-5 lower">
+            <div class="panel bg-white">
+                <div class="panel-header text-center">
+                    <div class="panel-title h6">Legend</div>
+                </div>
+                <div class="panel-body">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://d3js.org/d3-geo-projection.v1.min.js"></script>

@@ -1,4 +1,4 @@
-function droughtAreaPlot() {
+function DroughtAreaPlot() {
     let self = this;
 
     function initPlot() {
@@ -6,6 +6,7 @@ function droughtAreaPlot() {
         let width = 960 - margin.left - margin.right;
         let height = 500 - margin.top - margin.bottom;
 
+        self.graph = d3.select('#graphDroughtArea')
         self.x = d3.scaleTime().range([0, width]);
         self.y = d3.scaleLinear().range([height, 0]).domain([0, 100]);
 
@@ -30,7 +31,7 @@ function droughtAreaPlot() {
             .offset(d3.stackOffsetNone)
 
 
-        self.plot = graph
+        self.plot = self.graph
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
@@ -47,7 +48,7 @@ function droughtAreaPlot() {
         self.plot.append("g")
             .call(d3.axisLeft(self.y));
 
-        self.legend = graph.selectAll(".legend")
+        self.legend = self.graph.selectAll(".legend")
             .data(self.colors.domain()).enter()
             .append("g")
             .attr("class","legend")

@@ -17,14 +17,22 @@ var initJobCount = 5;
 this.drought = {};
 
 initTimeline();
-var graph = d3.select("#graph");
 
 plotUS();
-let plot = new droughtAreaPlot();
+let plot = new DroughtAreaPlot();
 plot.initPlot();
 plotStackedGraph("TX");
 
+let fireDroughtPlot = new FireDroughtPlot();
+fireDroughtPlot.initPlot();
+plotFireDroughtHist("CA")
 
+function plotFireDroughtHist(state) {
+    //TODO get fire dates and counties
+    let data = Array.from({length: 40}, () => Math.random());
+    fireDroughtPlot.plot(data);
+
+}
 
 
 function plotStackedGraph(state) {
@@ -173,6 +181,7 @@ async function plotStates() {
                     let asf = parseInt(i.id)
                 })
                 .on("click", function(d) {
+                    plotFireDroughtHist();
                     let state = states.find(s => {
                         return parseInt(s.Id) ==  parseInt(d.id);})
                     if (state != undefined) {

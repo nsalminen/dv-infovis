@@ -17,6 +17,7 @@ var path = d3.geoPath();
 var tlRangeFrom = new Date(2001, 0, 1);
 var tlRangeTo = new Date(2002, 11, 31);
 var animationInterval;
+var animationPaused = false;
 
 this.drought = {};
 
@@ -24,7 +25,7 @@ initTimeline();
 
 plotUS();
 let plot = new droughtAreaPlot();
-plot.initPlot();
+//plot.initPlot();
 plotStackedGraph("TX");
 
 var resizeDelay;
@@ -53,7 +54,6 @@ function droughtAreaPlot() {
         let margin = {top: 10, right: 100, bottom: 50, left: 50};
         let width = innerWidth - margin.left - margin.right;
         let height = innerHeight - margin.top - margin.bottom;
-        console.log("widht: " + width)
 
         self.x = d3.scaleTime().range([0, width]);
         self.y = d3.scaleLinear().range([height, 0]).domain([0, 100]);
@@ -216,10 +216,10 @@ function plotUS() {
        states = data;
     });
     plotCounties()
-        .then(result => plotStates())
-        .then(result => plotMTBS())
-        .then(result => loadDrought(2001))
-        .then(result => startAnimate())
+        //.then(result => plotStates())
+        //.then(result => plotMTBS())
+        //.then(result => loadDrought(2001))
+        //.then(result => startAnimate())
         .then(result => finishInit());
 }
 
@@ -266,26 +266,46 @@ function initTimeline(){
     });
 }
 
+function pauseAnimate(){
+    if (animationPaused){
+        animationPaused = false;
+        $(".timeline-control-container .pause-button").removeClass("active");
+        $(".timeline-control-container .pause-button").text("Pause");
+    } else {
+        animationPaused = true;
+        $(".timeline-control-container .pause-button").addClass("active");
+        $(".timeline-control-container .pause-button").text("Paused");
+    }
+}
+
 function startAnimate() {
+    if (animationPaused){
+        animationPaused = false;
+        $(".timeline-control-container .pause-button").removeClass("disabled");
+        return;
+    }
+    $(".timeline-control-container .start-button").text("Restart");
     clearInterval(animationInterval);
     let date = new Date(tlRangeFrom.getTime());
     animationInterval = window.setInterval(function() {
-        console.log(date.toDateString());
-        $('.map-subtitle').fadeOut(200, function() {
-            $(this).text(date.toLocaleString('en-us', { month: "long" }) + ' ' + date.getFullYear()).fadeIn(300);
-        });
-        let start = Date.now();
-        let colorPromise = colorDrought(date);
-        date.setMonth(date.getMonth() + 1);
-        if (date >= tlRangeTo) {
-            date = new Date(tlRangeFrom.getTime());
+        if (!animationPaused){
+            console.log(date.toDateString());
+            $('.map-subtitle').fadeOut(200, function() {
+                $(this).text(date.toLocaleString('en-us', { month: "long" }) + ' ' + date.getFullYear()).fadeIn(300);
+            });
+            let start = Date.now();
+            let colorPromise = colorDrought(date);
+            date.setMonth(date.getMonth() + 1);
+            if (date >= tlRangeTo) {
+                date = new Date(tlRangeFrom.getTime());
+            }
+            colorPromise.then(result => {
+                let end = Date.now();
+                let diff = end - start;
+                //console.log("done in: " + diff);
+                loadDrought(date.getFullYear())
+            });
         }
-        colorPromise.then(result => {
-            let end = Date.now();
-            let diff = end - start;
-            //console.log("done in: " + diff);
-            loadDrought(date.getFullYear())
-        });
     }, 1000);
 }
 

@@ -18,6 +18,7 @@ var tlRangeFrom = new Date(2001, 0, 1);
 var tlRangeTo = new Date(2002, 11, 31);
 var animationInterval;
 var animationPaused = false;
+var animationActive = false;
 
 this.drought = {};
 
@@ -216,15 +217,15 @@ function plotUS() {
        states = data;
     });
     plotCounties()
-        //.then(result => plotStates())
-        //.then(result => plotMTBS())
-        //.then(result => loadDrought(2001))
-        //.then(result => startAnimate())
+        .then(result => plotStates())
+        .then(result => plotMTBS())
+        .then(result => loadDrought(2001))
+        .then(result => startAnimate())
         .then(result => finishInit());
 }
 
 function reinitVis(){
-    startAnimate();
+    if (animationActive && !animationPaused) { startAnimate(); }
     reloadPlot();
 }
 
@@ -279,10 +280,11 @@ function pauseAnimate(){
 }
 
 function startAnimate() {
+    animationActive = true;
     if (animationPaused){
         animationPaused = false;
-        $(".timeline-control-container .pause-button").removeClass("disabled");
-        return;
+        $(".timeline-control-container .pause-button").removeClass("active");
+        $(".timeline-control-container .pause-button").text("Pause");
     }
     $(".timeline-control-container .start-button").text("Restart");
     clearInterval(animationInterval);

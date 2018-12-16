@@ -23,9 +23,9 @@ function DroughtAreaPlot() {
             });
 
         self.keys = ["None", "D0", "D1", "D2", "D3", "D4"]
+        let interpolate = d3.interpolateHcl( '#00AA00', '#AA0000');
 
-        self.colors = d3.scaleOrdinal(d3.schemeCategory10).domain(self.keys);
-
+        self.colors = d3.scaleOrdinal(d3.schemeCategory10).domain(self.keys).range(self.keys.map((d,i) => interpolate(i / (self.keys.length - 1))));
         self.stack = d3.stack().keys(self.keys)
             .order(d3.stackOrderReverse)
             .offset(d3.stackOffsetNone)

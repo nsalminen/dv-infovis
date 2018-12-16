@@ -14,7 +14,9 @@ var pathProjection = d3.geoPath().projection(projection);
 
 var path = d3.geoPath();
 
-var initJobCount = 5;
+var tlRangeFrom = new Date(2001, 0, 1);
+var tlRangeTo = new Date(2002, 11, 31);
+var animationInterval;
 
 this.drought = {};
 
@@ -25,13 +27,19 @@ let plot = new droughtAreaPlot();
 plot.initPlot();
 plotStackedGraph("TX");
 
+var resizeDelay;
 $(window).on('resize', function(){
+    clearTimeout(resizeDelay);
+    resizeDelay = setTimeout(reloadPlot, 500);
+});
+
+function reloadPlot(){
     graph.remove();
     graph = d3.select('.plot-container').append("svg");
     plot = new droughtAreaPlot();
     plot.initPlot();
     plotStackedGraph("TX");
-});
+}
 
 function droughtAreaPlot() {
     let self = this;
@@ -133,7 +141,7 @@ function droughtAreaPlot() {
 
 
 function plotStackedGraph(state) {
-    getDrougtData(new Date(Date.UTC(2001,0,1,2,0,0)), new Date(Date.UTC(2002,0,1,0,0,0)),30,state)
+    getDrougtData(tlRangeFrom, tlRangeTo, 30, state)
 }
 
 
@@ -175,7 +183,7 @@ function getDrougtData(startDate, endDate, steps, state) {
                     D2: parseFloat(record["D2"]),
                     D3: parseFloat(record["D3"]),
                     D4: parseFloat(record["D4"])
-                }
+                };
             else
                 return {date: date, None: 0, D0: 0, D1: 0, D2: 0, D3: 0, D4: 0}
         });
@@ -209,6 +217,11 @@ function plotUS() {
         .then(result => finishInit());
 }
 
+function reinitVis(){
+    startAnimate();
+    reloadPlot();
+}
+
 function initTimeline(){
     updateInitText("Loading timeline");
     var lang = "en-US";
@@ -228,27 +241,35 @@ function initTimeline(){
         });
     }
 
+    var rangeChangeDelay;
     $(".date-slider").ionRangeSlider({
         skin: "flat",
         type: "double",
         grid: true,
         min: dateToTS(new Date(2000, 0, 1)),
         max: dateToTS(new Date(2015, 11, 31)),
-        from: dateToTS(new Date(2005, 10, 8)),
-        to: dateToTS(new Date(2005, 12, 23)),
-        prettify: tsToDate
+        from: dateToTS(tlRangeFrom),
+        to: dateToTS(tlRangeTo),
+        prettify: tsToDate,
+        onChange: function (data) {
+            tlRangeFrom = new Date(data.from);
+            tlRangeTo = new Date(data.to);
+            clearTimeout(rangeChangeDelay);
+            rangeChangeDelay = setTimeout(reinitVis, 500);
+        },
     });
 }
 
 function startAnimate() {
-    let date = new Date(Date.UTC(2001,0,1,0,0,0));
-    window.setInterval(function() {
-        //console.log(date.toDateString());
-        let start =Date.now();
+    clearInterval(animationInterval);
+    var date = new Date(tlRangeFrom.getTime());
+    animationInterval = window.setInterval(function() {
+        console.log(date.toDateString());
+        let start = Date.now();
         let colorPromise = colorDrought(date);
-        date = addDays(date, 30);
-        if (date.getFullYear() === 2002) {
-            date.setFullYear(2001);
+        date.setMonth(date.getMonth() + 1);
+        if (date >= tlRangeTo) {
+            date = new Date(tlRangeFrom.getTime());
         }
         colorPromise.then(result => {
             let end = Date.now();
@@ -356,7 +377,7 @@ async function loadDrought(year, state) {
 }
 
 async function plotMTBS() {
-    console.log("Plotting MTBS")
+    updateInitText("Plotting burn severity data")
     return new Promise((resolve, reject) => {
         d3.json("data/mtbs_perims_DD_2000_2015.json", function (error, fireArea) {
             if (error) reject(error);

@@ -64,8 +64,9 @@ function droughtAreaPlot() {
                 "translate(" + margin.left + "," + margin.top + ")");
 
         // add the X Axis
-        self.plot.append("g")
-            .attr("transform", "translate(0," + height + ")")
+        self.xAxis = self.plot.append("g")
+            .attr("transform", "translate(0," + height + ")");
+        self.xAxis
             .call(d3.axisBottom(self.x));
 
         // add the Y Axis
@@ -97,6 +98,8 @@ function droughtAreaPlot() {
         self.x.domain(d3.extent(plotData, function (d) {
             return d.date;
         }));
+        self.xAxis
+            .call(d3.axisBottom(self.x));
         let series = self.stack(plotData);
 
         self.plot.selectAll('.droughtArea').data(series).exit().remove();
@@ -118,7 +121,7 @@ function droughtAreaPlot() {
 
 
 function plotStackedGraph(state) {
-    getDrougtData(new Date(Date.UTC(2001,0,1,2,0,0)), new Date(Date.UTC(2002,0,1,0,0,0)),30,state)
+    getDrougtData(new Date(Date.UTC(2001,0,1,0,0,0)), new Date(Date.UTC(2002,0,1,0,0,0)),30,state)
 }
 
 
@@ -242,7 +245,7 @@ function startAnimate() {
             console.log("done in: " + diff);
             loadDrought(date.getFullYear())
         });
-    }, 1000);
+    }, 2000);
     console.log("Hello");
 }
 
@@ -267,7 +270,7 @@ async function plotStates() {
                         return parseInt(s.Id) ==  parseInt(d.id);})
                     if (state != undefined) {
                         plotStackedGraph(state.Code);
-                        Console.log("clicked " + state.Code);
+                        console.log("clicked " + state.Code);
                     }
 
                 });
@@ -402,7 +405,7 @@ function searchStart(data, date) {
             upper = index;
             continue;
         }
-        let endDate = Date.parse(d.ValidEnd);
+        let endDate = addDays(Date.parse(d.ValidEnd),1);
         if (endDate < date) {
             if (lower == index)
                 break;
@@ -411,7 +414,7 @@ function searchStart(data, date) {
         }
         while (index > 0) {
             index--;
-            if (Date.parse(data[index].ValidEnd) < date){
+            if (addDays(Date.parse(data[index].ValidEnd),1) < date){
                 return index + 1;
             }
         }
@@ -425,8 +428,8 @@ function searchStart(data, date) {
 function setDroughtColor(drought, date) {
     let start = searchStart(drought, date);
     for(let index = start; index < drought.length; index++) {
-        let start = Date.parse(drought[index].ValidStart);
-        if (start > date)
+        let startDate = new Date(Date.parse(drought[index].ValidStart));
+        if (startDate > date)
             return;
         colorElement(drought[index])
     }

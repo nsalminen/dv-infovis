@@ -25,9 +25,13 @@ body {
 }
 
 .map-container {
-    padding: 0.4rem;
+    padding: 0 0.4rem 0.4rem;
     border-radius: .1rem;
     height: 100%;
+}
+
+.map-subtitle {
+    font-size: 0.6rem;
 }
 
 .plot-container {
@@ -36,6 +40,10 @@ body {
     max-height: inherit;
     height: 100%;
     width: 100%;
+}
+
+.map-header {
+    padding-bottom: 0 !important;
 }
 
 .timeline-container {

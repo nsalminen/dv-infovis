@@ -204,6 +204,12 @@ function updateInitText(text) {
     });
 }
 
+function updateMapSubtitle(date) {
+    $('#map-subtitle').fadeOut(200, function() {
+        $(this).text(date.toLocaleString('en-us', { month: "long" }) + ' ' + date.getFullYear()).fadeIn(300);
+    });
+}
+
 function plotUS() {
     updateInitText("Plotting map");
     d3.csv("data/states.csv", function(data) {
@@ -241,7 +247,7 @@ function initTimeline(){
         });
     }
 
-    var rangeChangeDelay;
+    let rangeChangeDelay;
     $(".date-slider").ionRangeSlider({
         skin: "flat",
         type: "double",
@@ -262,9 +268,12 @@ function initTimeline(){
 
 function startAnimate() {
     clearInterval(animationInterval);
-    var date = new Date(tlRangeFrom.getTime());
+    let date = new Date(tlRangeFrom.getTime());
     animationInterval = window.setInterval(function() {
         console.log(date.toDateString());
+        $('.map-subtitle').fadeOut(200, function() {
+            $(this).text(date.toLocaleString('en-us', { month: "long" }) + ' ' + date.getFullYear()).fadeIn(300);
+        });
         let start = Date.now();
         let colorPromise = colorDrought(date);
         date.setMonth(date.getMonth() + 1);
@@ -416,7 +425,6 @@ function colorMap() {
     });
 }
 
-
 /**
  * Use binary search to find the first record that has the date in its range.
  * @param data
@@ -452,7 +460,6 @@ function searchStart(data, date) {
         return index;
     }
     return lower
-
 }
 
 

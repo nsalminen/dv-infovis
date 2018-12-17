@@ -15,6 +15,15 @@ var path = d3.geoPath();
 var initJobCount = 5;
 
 this.drought = {};
+this.fires = {};
+states = {}
+
+this.uiState = {
+    from: null,
+    to: null,
+    currentState: "CA"
+}
+this.stateFipsCodes = {'01': 'AL', '02': 'AK', '04': 'AZ', '05': 'AR', '06': 'CA', '08': 'CO', '09': 'CT', '10': 'DE', '11': 'DC', '12': 'FL', '13': 'GA', '15': 'HI', '16': 'ID', '17': 'IL', '18': 'IN', '19': 'IA', '20': 'KS', '21': 'KY', '22': 'LA', '23': 'ME', '24': 'MD', '25': 'MA', '26': 'MI', '27': 'MN', '28': 'MS', '29': 'MO', '30': 'MT', '31': 'NE', '32': 'NV', '33': 'NH', '34': 'NJ', '35': 'NM', '36': 'NY', '37': 'NC', '38': 'ND', '39': 'OH', '40': 'OK', '41': 'OR', '42': 'PA', '44': 'RI', '45': 'SC', '46': 'SD', '47': 'TN', '48': 'TX', '49': 'UT', '50': 'VT', '51': 'VA', '53': 'WA', '54': 'WV', '55': 'WI', '56': 'WY', '60': 'AS', '64': 'FM', '66': 'GU', '68': 'MH', '69': 'MP', '70': 'PW', '72': 'PR', '74': 'UM', '78': 'VI'}
 
 initTimeline();
 
@@ -27,11 +36,79 @@ let fireDroughtPlot = new FireDroughtPlot();
 fireDroughtPlot.initPlot();
 plotFireDroughtHist("CA")
 
+// let fireTimePlot = new FireTimePlot();
+// fireTimePlot.initPlot();
+// @TODO: Hook to update on state select
+
+
+async function loadFires(year, state) {
+    if (state === undefined) {
+        return Promise.all(this.states.map(s => loadFires(year, s.Code)));
+    }
+    if (!(year in this.fires)) {
+        this.fires[year] = {};
+    }
+    if (!(state in this.fires[year])) {
+        this.fires[year][state] = new Promise(function (resolve, reject){
+          //  console.log("Start reading " + year + " " + state);
+            let path = "data/fires/" + year + "/fires_" + year + "_" + state + ".csv"
+            d3.csv(path, function(error, request) {
+                if(error) {
+                    console.log(error);
+                    reject(error);
+                } else {
+                 //   console.log("Loaded " + year + " " + state);
+                    resolve(request);
+                }
+            });
+        });
+    }
+    return this.fires[year][state];
+}
+
+function getSliceWithinRange(startDate, endDate, firedata)
+{
+    var end;
+    for (var i = 0; i < firedata.length; i++) {
+        if (firedata[i] === undefined) {
+            console.log("Undefined", firedata);
+            return;
+        }
+
+        if (new Date(firedata[i]['DISCOVERY_DATE']) >= endDate) {
+            end = i;
+            break;
+        }
+    }
+
+    let plotdata = firedata.slice(0, end).filter(function (e) {
+        let fireStart = new Date(e['DISCOVERY_DATE']);
+
+        // If fire starts in our tracking range
+        if (fireStart >= startDate && fireStart <= endDate)
+        {
+            return true;
+        }
+
+        if (e['CONT_DATE'] !== '')
+        {
+            // If Containment date is known, see if it's within our range
+            let fireEnd = new Date(e['CONT_DATE']);
+            return fireEnd >= startDate;
+        } else {
+            // If not known, and fireStart + month is > startDate
+            return addDays(fireStart, 30) >= startDate;
+        }
+    });
+
+    return plotdata;
+}
+
+
 function plotFireDroughtHist(state) {
     //TODO get fire dates and counties
     let data = Array.from({length: 40}, () => Math.random());
     fireDroughtPlot.plot(data);
-
 }
 
 
@@ -86,7 +163,7 @@ function getDrougtData(startDate, endDate, steps, state) {
     })
 }
 
-states = {}
+
 
 function finishInit(){
     updateInitText("Done")
@@ -108,9 +185,24 @@ function plotUS() {
         .then(result => plotStates())
         .then(result => plotMTBS())
         .then(result => loadDrought(2001))
-        .then(result => startAnimate())
+        // .then(result => startAnimate())
         .then(result => finishInit());
 }
+
+
+
+function updatePlots() {
+    let from = this.uiState.from;
+    let to = this.uiState.to;
+    let state = this.uiState.currentState;
+
+    // @TODO: Call update on firesTimePlot()
+    console.log("Current state", this.uiState)
+
+    plotStackedGraph(state);
+    plotFireDroughtHist();
+}
+
 
 function initTimeline(){
     updateInitText("Loading timeline");
@@ -139,7 +231,32 @@ function initTimeline(){
         max: dateToTS(new Date(2015, 11, 31)),
         from: dateToTS(new Date(2005, 10, 8)),
         to: dateToTS(new Date(2005, 12, 23)),
-        prettify: tsToDate
+        prettify: tsToDate,
+        onFinish: function (data) {
+            uiState.from = data.from;
+            uiState.to = data.to;
+            updatePlots()
+        }
+    });
+
+    console.log("Got here!!!");
+    initUI();
+}
+
+function initUI() {
+    d3.selectAll(".menu-item a").on("click", function(e, d) {
+        let id = d3.select(this).attr("data-graph");
+        console.log("click", id)
+
+        // Hide all other plot graphs
+        d3.selectAll(".panel .empty, .panel .graph").style("display", "none");
+
+        let selectedElement = d3.select(d3.select("#"+id).node().parentNode)
+        console.log(selectedElement, selectedElement.parentNode)
+        selectedElement.style("display", "block")
+
+        // Set currently selected plot to visible
+        // el.attr("data-graph")
     });
 }
 
@@ -165,6 +282,7 @@ function startAnimate() {
 }
 
 async function plotStates() {
+    let self = this;
     updateInitText("Plotting US states");
     return new Promise((resolve, reject) => {
         d3.json("https://d3js.org/us-10m.v1.json", function (error, us) {
@@ -178,17 +296,14 @@ async function plotStates() {
                 .enter().append("path")
                 .attr("d", path)
                 .attr("id", (i) => {
-                    let asf = parseInt(i.id)
+                    return parseInt(i.id)
                 })
                 .on("click", function(d) {
-                    plotFireDroughtHist();
-                    let state = states.find(s => {
-                        return parseInt(s.Id) ==  parseInt(d.id);})
+                    let state = self.stateFipsCodes[d.id];
                     if (state != undefined) {
-                        plotStackedGraph(state.Code);
-                        console.log("clicked " + state.Code);
+                        self.uiState.currentState = state;
+                        updatePlots();
                     }
-
                 });
 
 

@@ -44,7 +44,13 @@
                         </a>
                         <ul class="menu">
                             <li class="menu-item">
-                                <a>Plot 1</a>
+                                <a data-graph="graphDroughtArea">Drought vs Area</a>
+                            </li>
+                            <li class="menu-item">
+                                <a data-graph="graphFireDroughtHist">Fires vs Drought</a>
+                            </li>
+                            <li class="menu-item">
+                                <a data-graph="graphFiresTimePlot">Fires vs Time</a>
                             </li>
                         </ul>
                     </div>
@@ -56,9 +62,18 @@
                     </div>
                     <p class="empty-title h5">Select a plot type</p>
                     <p class="empty-subtitle">Click the dropdown above to select a plot</p>
-                    <svg id="graphDroughtArea"></svg>
-                    <svg id="graphFireDroughtHist"></svg>
                 </div>
+
+                <div class="graph">
+                    <svg id="graphDroughtArea" class="plot"></svg>
+                </div>
+                <div class="graph">
+                    <svg id="graphFireDroughtHist" class="plot"></svg>
+                </div>
+                <div class="graph">
+                    <svg id="graphFiresTimePlot" class="plot"></svg>
+                </div>
+
             </div>
         </div>
         <div class="column col-7 lower">

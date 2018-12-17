@@ -11,7 +11,7 @@ function FireDroughtPlot() {
         self.histogram = d3.histogram()
             .value(function(d) { return d; })
             .domain(self.x.domain())
-            .thresholds(10);
+            .thresholds(20);
 
         self.plot = self.graph.attr("width", width + margin.left + margin.right)
             .attr("height", self.height + margin.top + margin.bottom)

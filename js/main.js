@@ -30,11 +30,9 @@ initTimeline();
 plotUS();
 let plot = new DroughtAreaPlot();
 plot.initPlot();
-plotStackedGraph("TX");
 
 let fireDroughtPlot = new FireDroughtPlot();
 fireDroughtPlot.initPlot();
-plotFireDroughtHist("CA")
 
 let fireTimePlot = new FireTimePlot();
 fireTimePlot.initPlot();
@@ -103,16 +101,56 @@ function getSliceWithinRange(startDate, endDate, firedata)
 }
 
 
-function plotFireDroughtHist(state) {
+function plotFireDroughtHist(fireData, state, from, to) {
     //TODO get fire dates and counties
-    let data = Array.from({length: 40}, () => Math.random());
-    fireDroughtPlot.plot(data);
+    let yearStart = from.getFullYear();
+    let yearEnd = to.getFullYear();
+    let years = Array.apply(null, Array(yearEnd - yearStart+ 1)).map(function (x, i) { return i + yearStart; })
+
+    let compactFireData = {}
+    for (let index = 0; index < fireData.length; ++index) {
+        let fire = fireData[index];
+        let dateString = fire["DISCOVERY_DATE"];
+        let county = parseInt(fire["FIPS"]);
+        if (!(dateString in compactFireData))
+            compactFireData[dateString] = [];
+        if (!(county in compactFireData[dateString]))
+            compactFireData[dateString][county] = 0;
+        compactFireData[dateString][county] += 1;
+    }
+    Promise.all(years.map(x=>loadDrought(x, state))).then(droughtData => {
+        let plotData = [];
+        for (let key in compactFireData) {
+            let date = new Date(Date.parse(key));
+            let year = date.getFullYear();
+            let dIndex = years.indexOf(year);
+            let drought = droughtData[dIndex];
+            let start = searchStart(drought, date);
+            let droughtDate = date;
+            while (droughtDate <= date && start < drought.length) {
+                let d = drought[start];
+                start++;
+                droughtDate = Date.parse(d.ValidStart);
+                let fips = parseInt(d.FIPS);
+                if (fips in compactFireData[key]) {
+                    let number = compactFireData[key][fips];
+                    compactFireData[key][fips] = 0;
+                    let D0 = parseFloat(d["D0"]);
+                    let D1 = parseFloat(d["D1"]);
+                    let D2 = parseFloat(d["D2"]);
+                    let D3 = parseFloat(d["D3"]);
+                    let D4 = parseFloat(d["D4"]);
+                    let drought = (D0 * 0.2 + D1 * 0.4 + D2 * 0.6 + D3 * 0.8 + D4 * 1)/100;
+                    for (let i = 0; i < number; i++) {
+                        plotData.push(drought)
+                    }
+                }
+            }
+        }
+        fireDroughtPlot.plot(plotData);
+    });
 }
 
-
-function plotStackedGraph(state) {
-    getDrougtData(new Date(Date.UTC(2001,0,1,0,0,0)), new Date(Date.UTC(2002,0,1,0,0,0)),30,state)
-}
 
 
 function getDrougtData(startDate, endDate, steps, state) {
@@ -193,13 +231,15 @@ function updatePlots() {
     let to = this.uiState.to;
     let state = this.uiState.currentState;
 
-    plotStackedGraph(state);
-    plotFireDroughtHist();
-
+    getDrougtData(from, to,100,state)
+   // plotFireDroughtHist(state);
+    let dt = Date.now();
     loadFires(from.getFullYear(), state).then(data => {
         let dataslice = getSliceWithinRange(from, to, data);
         console.log("resulting data", dataslice, from, to, state)
-        fireTimePlot.plot(from, to, dataslice)
+        fireTimePlot.plot(from, to, dataslice);
+
+        plotFireDroughtHist(dataslice, state, from, to);
         // @TODO: Call update on firesTimePlot() with this data
     });
 }

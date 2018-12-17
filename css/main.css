@@ -92,6 +92,11 @@ body {
     height: 100%;
 }
 
+.panel .graph {
+    height: 100%;
+    display: none;
+}
+
 .counties {
     fill: lightgray;
     pointer-events: none;

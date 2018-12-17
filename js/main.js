@@ -185,7 +185,7 @@ function plotUS() {
         .then(result => plotStates())
         .then(result => plotMTBS())
         .then(result => loadDrought(2001))
-        // .then(result => startAnimate())
+        .then(result => startAnimate())
         .then(result => finishInit());
 }
 

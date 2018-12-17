@@ -36,8 +36,8 @@ let fireDroughtPlot = new FireDroughtPlot();
 fireDroughtPlot.initPlot();
 plotFireDroughtHist("CA")
 
-// let fireTimePlot = new FireTimePlot();
-// fireTimePlot.initPlot();
+let fireTimePlot = new FireTimePlot();
+fireTimePlot.initPlot();
 // @TODO: Hook to update on state select
 
 
@@ -50,14 +50,12 @@ async function loadFires(year, state) {
     }
     if (!(state in this.fires[year])) {
         this.fires[year][state] = new Promise(function (resolve, reject){
-          //  console.log("Start reading " + year + " " + state);
             let path = "data/fires/" + year + "/fires_" + year + "_" + state + ".csv"
             d3.csv(path, function(error, request) {
                 if(error) {
                     console.log(error);
                     reject(error);
                 } else {
-                 //   console.log("Loaded " + year + " " + state);
                     resolve(request);
                 }
             });
@@ -199,10 +197,9 @@ function updatePlots() {
     plotFireDroughtHist();
 
     loadFires(from.getFullYear(), state).then(data => {
-        console.log(data);
         let dataslice = getSliceWithinRange(from, to, data);
-        console.log("resulting data", dataslice)
-
+        console.log("resulting data", dataslice, from, to, state)
+        fireTimePlot.plot(from, to, dataslice)
         // @TODO: Call update on firesTimePlot() with this data
     });
 }
@@ -230,7 +227,7 @@ function initTimeline(){
     var self = this;
 
 
-    let initFrom = new Date(2003, 10, 8);
+    let initFrom = new Date(2003, 1, 8);
     let initTo = new Date(2003, 12, 23);
 
     $(".date-slider").ionRangeSlider({

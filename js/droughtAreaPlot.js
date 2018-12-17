@@ -87,7 +87,6 @@ function DroughtAreaPlot() {
             .style("fill", function (d, i) {
                 return self.colors(i);
             });
-
     }
     return {
         initPlot, plotDrought

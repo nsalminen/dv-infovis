@@ -189,18 +189,22 @@ function plotUS() {
         .then(result => finishInit());
 }
 
-
-
 function updatePlots() {
+    var self = this;
     let from = this.uiState.from;
     let to = this.uiState.to;
     let state = this.uiState.currentState;
 
-    // @TODO: Call update on firesTimePlot()
-    console.log("Current state", this.uiState)
-
     plotStackedGraph(state);
     plotFireDroughtHist();
+
+    loadFires(from.getFullYear(), state).then(data => {
+        console.log(data);
+        let dataslice = getSliceWithinRange(from, to, data);
+        console.log("resulting data", dataslice)
+
+        // @TODO: Call update on firesTimePlot() with this data
+    });
 }
 
 
@@ -223,23 +227,30 @@ function initTimeline(){
         });
     }
 
+    var self = this;
+
+
+    let initFrom = new Date(2003, 10, 8);
+    let initTo = new Date(2003, 12, 23);
+
     $(".date-slider").ionRangeSlider({
         skin: "flat",
         type: "double",
         grid: true,
         min: dateToTS(new Date(2000, 0, 1)),
         max: dateToTS(new Date(2015, 11, 31)),
-        from: dateToTS(new Date(2005, 10, 8)),
-        to: dateToTS(new Date(2005, 12, 23)),
+        from: dateToTS(initFrom),
+        to: dateToTS(initTo),
         prettify: tsToDate,
         onFinish: function (data) {
-            uiState.from = data.from;
-            uiState.to = data.to;
+            self.uiState.from = new Date(data.from);
+            self.uiState.to = new Date(data.to);
             updatePlots()
         }
     });
+    uiState.from = initFrom;
+    uiState.to = initTo;
 
-    console.log("Got here!!!");
     initUI();
 }
 

@@ -4,11 +4,11 @@ function DroughtAreaPlot() {
     function initPlot() {
         innerHeight = $( ".plot-container" ).innerHeight();
         innerWidth = $( ".plot-container" ).innerWidth();
-        let margin = {top: 10, right: 100, bottom: 50, left: 50};
+        let margin = {top: 10, right: 110, bottom: 50, left: 50};
         let width = innerWidth - margin.left - margin.right;
         let height = innerHeight - margin.top - margin.bottom;
 
-        self.graph = d3.select('#graphDroughtArea').append("svg");
+        self.graph = d3.select('#graphDroughtArea').append("svg").attr("class", "plot");
         self.x = d3.scaleTime().range([0, width]);
         self.y = d3.scaleLinear().range([height, 0]).domain([0, 100]);
 
@@ -25,13 +25,6 @@ function DroughtAreaPlot() {
             });
 
         self.keys = ["None", "D0", "D1", "D2", "D3", "D4"]
-//        let interpolate = d3.interpolateHcl( '#00AA00', '#AA0000');
-        let colorInterpolate = d3.scaleLinear()
-            .domain([0, 1])
-            .range(["hsl(0,0%,90%)", "hsl(0,100%,50%)"]);
-     //   self.colors = d3.scaleOrdinal(d3.schemeCategory10).domain(self.keys).range(self.keys.map((d,i) => interpolate(i / (self.keys.length - 1))));
-        //self.colors = d3.scaleOrdinal(d3.schemeCategory10).domain(self.keys).range(self.keys.map((d,i) => colorInterpolate(i / (self.keys.length - 1))));
-
         self.colors = d3.scaleOrdinal(d3.schemeCategory10).domain(self.keys).range(
         [
         '#4daf4a',
@@ -60,8 +53,10 @@ function DroughtAreaPlot() {
             .call(d3.axisBottom(self.x));
 
         // add the Y Axis
+
         self.plot.append("g")
-            .call(d3.axisLeft(self.y));
+            .call(d3.axisLeft(self.y)
+                .tickFormat(d => d+'%'));
 
         self.legend = self.graph.selectAll(".legend")
             .data(self.colors.domain()).enter()
@@ -82,6 +77,22 @@ function DroughtAreaPlot() {
             .attr("dy", "0.75em")
             .attr("y", function(d, i) { return 20 * i; })
             .text(function(d) {return d});
+
+        //labels
+        self.graph.append("text")
+            .attr("transform",
+                "translate(" + ((width/2) +  margin.left)+ " ," +
+                (height + margin.top + 40) + ")")
+            .style("text-anchor", "middle")
+            .text("Date");
+
+        self.graph.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0 )
+            .attr("x",0 - (height / 2))
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("Percentage of land");
     }
 
     function plotDrought(plotData) {

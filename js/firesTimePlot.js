@@ -8,13 +8,13 @@ function FireTimePlot() {
 	let self = this;
 
     function initPlot() {
-        let margin = {top: 10, right: 100, bottom: 50, left: 50};
+        let margin = {top: 10, right: 110, bottom: 50, left: 50};
         innerHeight = $( ".plot-container" ).innerHeight();
         innerWidth = $( ".plot-container" ).innerWidth();
 		let width = innerWidth - margin.left - margin.right;
 		console.log("Firetime width: " + width);
 		self.height = innerHeight - margin.top - margin.bottom;
-		self.graph = d3.select('#graphFiresTimePlot').append("svg");
+		self.graph = d3.select('#graphFiresTimePlot').append("svg").attr("class", "plot");;
 
 		// Range from startdate to enddate
 		self.x = d3.scaleTime().range([0, width]);
@@ -49,6 +49,21 @@ function FireTimePlot() {
         			.x(function(d) { return self.x(d.date) })
         			.y(function(d) { return self.y(d.count)})
 
+        //labels
+        self.graph.append("text")
+            .attr("transform",
+                "translate(" + ((width/2) +  margin.left)+ " ," +
+                (self.height + margin.top + 40) + ")")
+            .style("text-anchor", "middle")
+            .text("Date");
+
+        self.graph.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0 )
+            .attr("x",0 - (self.height / 2))
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("Number of fires");
 		// Histogram bin per 10 days or, or just check the fires per day?
 		console.log("Berend: Init complete")
 

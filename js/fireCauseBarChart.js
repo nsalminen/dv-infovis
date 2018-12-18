@@ -18,12 +18,12 @@ function FireCauseBarChart() {
     ];
 
     function initPlot() {
-        let margin = {top: 10, right: 100, bottom: 50, left: 50};
+        let margin = {top: 10, right: 110, bottom: 50, left: 50};
         innerHeight = $( ".plot-container" ).innerHeight();
         innerWidth = $( ".plot-container" ).innerWidth();
         self.width = innerWidth - margin.left - margin.right;
         self.height = innerHeight - margin.top - margin.bottom;
-        self.graph = d3.select('#graphFiresCauseBarChart').append("svg");
+        self.graph = d3.select('#graphFiresCauseBarChart').append("svg").attr("class", "plot");
         self.x = d3.scaleBand().range([0, self.width]).padding(0.1).domain(plotData.map(x=>x.cause));
         self.y = d3.scaleLinear().range([self.height, 0]).domain([0,10]);
 
@@ -39,6 +39,24 @@ function FireCauseBarChart() {
 
         self.yAxis = self.plot.append("g");
         self.yAxis.call(d3.axisLeft(self.y));
+
+
+        //labels
+        self.graph.append("text")
+            .attr("transform",
+                "translate(" + ((self.width/2) +  margin.left) + " ," +
+                (self.height + margin.top + 40) + ")")
+            .style("text-anchor", "middle")
+            .text("Causes");
+
+        self.graph.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0 )
+            .attr("x",0 - (self.height / 2))
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("Number of fires");
+
     }
 
     function plot(rawPlotData) {

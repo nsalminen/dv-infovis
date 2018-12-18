@@ -29,6 +29,7 @@ var animationInterval;
 
 window.drought = {};
 window.fires = {};
+window.mtbs = null;
 states = {};
 
 window.uiState = {
@@ -89,6 +90,47 @@ async function loadFires(year, state) {
     return this.fires[year][state];
 }
 
+async function plotFires(startDate, endDate, state, filterSet) {
+    if (state === undefined) {
+        // state = "CA";           // @TODO: Return Promise.all instead
+        return Promise.all(this.states.map(s => plotFires(startDate, endDate, s.Code, filterSet)));
+    }
+
+    return new Promise((resolve, reject) => {
+        let fireYear = date.getFullYear()
+        
+        loadFires(fireYear, state).then(function (firedata) {
+            // Comb through csv to figure out what data to keep
+            let newFireData = firedata.filter(function (e) {
+                return !(e["FIRE_SIZE_CLASS"] === "B") && filterSet.has(e['STAT_CAUSE_CODE']);
+            });
+            let slice = getSliceWithinRange(startDate, endDate, newFireData);
+
+            // Plot fires
+            svg.selectAll("circle."+state)
+                .data(slice).enter()
+                .append("circle")
+                .attr("cx", function (d) { return projection([parseFloat(d['LONGITUDE']), parseFloat(d['LATITUDE'])])[0]; })
+                .attr("cy", function (d) { return projection([parseFloat(d['LONGITUDE']), parseFloat(d['LATITUDE'])])[1]; })
+                .attr("r", "2px")
+                .attr("fill", function(d) {
+                    if (d['FIRE_SIZE_CLASS'] === 'B') {
+                        return 'blue';
+                    }
+                    if (d['FIRE_SIZE_CLASS'] === 'C') {
+                        return 'yellow';
+                    }
+                    return 'red';
+                })
+                .attr("class", state)
+            svg.selectAll("circle."+state)
+                .data(slice).exit().remove()
+
+            resolve();
+        });
+    });
+}
+
 function getSliceWithinRange(startDate, endDate, firedata)
 {
     var end;
@@ -120,7 +162,7 @@ function getSliceWithinRange(startDate, endDate, firedata)
             return fireEnd >= startDate;
         } else {
             // If not known, and fireStart + month is > startDate
-            return addDays(fireStart, 30) >= startDate;
+            return addDays(fireStart, 7) >= startDate;
         }
     });
 
@@ -264,7 +306,7 @@ function plotUS() {
     });
     plotCounties()
         .then(result => plotStates())
-        .then(result => plotMTBS())
+        .then(result => loadMTBS())
         .then(result => loadDrought(2001))
         .then(result => startAnimate())
         .then(result => finishInit());
@@ -337,7 +379,7 @@ function initTimeline(){
             uiState.from = new Date(data.from);
             uiState.to = new Date(data.to);
             clearTimeout(rangeChangeDelay);
-            rangeChangeDelay = setTimeout(function () {updatePlots(); startAnimate()}, 500);
+            rangeChangeDelay = setTimeout(function () {reloadPlots(); startAnimate()}, 500);
         },
     });
     initUI();
@@ -400,6 +442,7 @@ function startAnimate() {
             });
             let start = Date.now();
             let colorPromise = colorDrought(date);
+            plotMTBS(date);
             date.setMonth(date.getMonth() + 1);
             if (date >= uiState.to) {
                 date = new Date(uiState.from.getTime());
@@ -411,7 +454,7 @@ function startAnimate() {
                 loadDrought(date.getFullYear())
             });
         }
-    }, 2000);
+    }, 1500);
 }
 
 async function plotStates() {
@@ -420,7 +463,7 @@ async function plotStates() {
     return new Promise((resolve, reject) => {
         d3.json("https://d3js.org/us-10m.v1.json", function (error, us) {
             if (error) reject(error);
-
+                  
             svg.append("g")
                 .attr("class", "states")
                 .selectAll("path")
@@ -505,7 +548,7 @@ function drawGradient() {
 function plotCounties() {
     updateInitText("Plotting US counties");
     return new Promise((resolve, reject) => {
-    d3.json("https://d3js.org/us-10m.v1.json", function (error, us) {
+        d3.json("https://d3js.org/us-10m.v1.json", function (error, us) {
         if (error)
             reject(error);
 
@@ -559,22 +602,32 @@ async function loadDrought(year, state) {
     return this.drought[year][state];
 }
 
-async function plotMTBS() {
-    updateInitText("Plotting burn severity data")
+async function loadMTBS(){
+    if (window.mtbs != null) { return };
+    updateInitText("Loading burn severity data");
     return new Promise((resolve, reject) => {
         d3.json("data/mtbs_perims_DD_2000_2015.json", function (error, fireArea) {
             if (error) reject(error);
-            console.log(fireArea.objects);
-            svg.append("g")
-                .attr("class", "fireArea")
-                .selectAll("path")
-                .data(topojson.feature(fireArea, fireArea.objects.mtbs_perims_DD).features)
-                .enter().append("path")
-                .attr("d", pathProjection);
-            console.log(topojson.feature(fireArea, fireArea.objects.mtbs_perims_DD).features.length)
-            resolve();
+            window.mtbs = topojson.feature(fireArea, fireArea.objects.mtbs_perims_DD).features;
         });
+        resolve();
     });
+}
+
+function plotMTBS(rangeStart) {
+    let rangeEnd = new Date(rangeStart.getTime());
+    rangeEnd.setMonth(rangeStart.getMonth() + 1);
+    svg.selectAll(".fireArea").remove();
+    let filteredFeatures = window.mtbs.filter(function(d){
+        let date = new Date(d.properties.Year, d.properties.StartMonth, d.properties.StartDay);
+        return (date <= rangeEnd && date >= rangeStart);
+    });
+    svg.append("g")
+        .attr("class", "fireArea")
+        .selectAll("path")
+        .data(filteredFeatures)
+        .enter().append("path")
+        .attr("d", pathProjection);
 }
 
 function addDays(date, days) {

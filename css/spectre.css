@@ -621,11 +621,11 @@ html:lang(ko),
     box-shadow: 0 0 0 0.1rem rgba(244, 81, 44, 0.2); }
   .btn:focus, .btn:hover {
     background: #fde7e2;
-    border-color: #f3451d;
+    border-color: #e1330c;
     text-decoration: none; }
   .btn:active, .btn.active {
-    background: #f3451d;
-    border-color: #eb350c;
+    background: #e1330c;
+    border-color: #c92e0a;
     color: #fff;
     text-decoration: none; }
     .btn:active.loading::after, .btn.active.loading::after {
@@ -637,15 +637,15 @@ html:lang(ko),
     pointer-events: none; }
   .btn.btn-primary {
     background: #F4512C;
-    border-color: #f3451d;
+    border-color: #e1330c;
     color: #fff; }
     .btn.btn-primary:focus, .btn.btn-primary:hover {
-      background: #f33d14;
-      border-color: #eb350c;
+      background: #d8310b;
+      border-color: #c92e0a;
       color: #fff; }
     .btn.btn-primary:active, .btn.btn-primary.active {
-      background: #f0370d;
-      border-color: #e1330c;
+      background: #ce2f0b;
+      border-color: #bf2c0a;
       color: #fff; }
     .btn.btn-primary.loading::after {
       border-bottom-color: #fff;
@@ -2346,12 +2346,12 @@ a.text-primary:visited {
   color: #f56544; }
 
 .text-secondary {
-  color: #fddbd3 !important; }
+  color: #fbbfb1 !important; }
 
 a.text-secondary:focus, a.text-secondary:hover {
-  color: #fbc7bb; }
+  color: #faab99; }
 a.text-secondary:visited {
-  color: #feefeb; }
+  color: #fcd3ca; }
 
 .text-gray {
   color: #bcc3ce !important; }

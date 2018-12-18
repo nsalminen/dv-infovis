@@ -24,25 +24,27 @@ var projection = d3.geoAlbersUsa()
     .scale(1280) // Scale taken from projection of us-10m.v1.json
     .translate([960 / 2, 600 / 2]);
 var pathProjection = d3.geoPath().projection(projection);
-
 var path = d3.geoPath();
+var animationInterval;
 
-var initJobCount = 5;
+window.drought = {};
+window.fires = {};
+states = {};
 
-this.drought = {};
-this.fires = {};
-states = {}
+window.uiState = {
+    from: new Date(2000, 0, 1),
+    to: new Date(2001, 11, 31),
+    currentState: "TX",
+    animationActive: false,
+    animationPaused: false
+};
 
-this.uiState = {
-    from: null,
-    to: null,
-    currentState: "CA"
-}
-this.stateFipsCodes = {'01': 'AL', '02': 'AK', '04': 'AZ', '05': 'AR', '06': 'CA', '08': 'CO', '09': 'CT', '10': 'DE', '11': 'DC', '12': 'FL', '13': 'GA', '15': 'HI', '16': 'ID', '17': 'IL', '18': 'IN', '19': 'IA', '20': 'KS', '21': 'KY', '22': 'LA', '23': 'ME', '24': 'MD', '25': 'MA', '26': 'MI', '27': 'MN', '28': 'MS', '29': 'MO', '30': 'MT', '31': 'NE', '32': 'NV', '33': 'NH', '34': 'NJ', '35': 'NM', '36': 'NY', '37': 'NC', '38': 'ND', '39': 'OH', '40': 'OK', '41': 'OR', '42': 'PA', '44': 'RI', '45': 'SC', '46': 'SD', '47': 'TN', '48': 'TX', '49': 'UT', '50': 'VT', '51': 'VA', '53': 'WA', '54': 'WV', '55': 'WI', '56': 'WY', '60': 'AS', '64': 'FM', '66': 'GU', '68': 'MH', '69': 'MP', '70': 'PW', '72': 'PR', '74': 'UM', '78': 'VI'}
+window.stateFipsCodes = {'01': 'AL', '02': 'AK', '04': 'AZ', '05': 'AR', '06': 'CA', '08': 'CO', '09': 'CT', '10': 'DE', '11': 'DC', '12': 'FL', '13': 'GA', '15': 'HI', '16': 'ID', '17': 'IL', '18': 'IN', '19': 'IA', '20': 'KS', '21': 'KY', '22': 'LA', '23': 'ME', '24': 'MD', '25': 'MA', '26': 'MI', '27': 'MN', '28': 'MS', '29': 'MO', '30': 'MT', '31': 'NE', '32': 'NV', '33': 'NH', '34': 'NJ', '35': 'NM', '36': 'NY', '37': 'NC', '38': 'ND', '39': 'OH', '40': 'OK', '41': 'OR', '42': 'PA', '44': 'RI', '45': 'SC', '46': 'SD', '47': 'TN', '48': 'TX', '49': 'UT', '50': 'VT', '51': 'VA', '53': 'WA', '54': 'WV', '55': 'WI', '56': 'WY', '60': 'AS', '64': 'FM', '66': 'GU', '68': 'MH', '69': 'MP', '70': 'PW', '72': 'PR', '74': 'UM', '78': 'VI'}
 
 initTimeline();
 
 plotUS();
+
 let plot = new DroughtAreaPlot();
 plot.initPlot();
 
@@ -56,6 +58,13 @@ let fireCauseBarChart = new FireCauseBarChart();
 fireCauseBarChart.initPlot();
 // @TODO: Hook to update on state select
 
+//updatePlots();
+
+var resizeDelay;
+$(window).on('resize', function(){
+    clearTimeout(resizeDelay);
+    resizeDelay = setTimeout(reloadPlots, 500);
+});
 
 async function loadFires(year, state) {
     if (state === undefined) {
@@ -128,7 +137,6 @@ function plotFireCauseBar(fireData) {
             }
         causeCount[code] += 1;
     }
-
     fireCauseBarChart.plot(causeCount);
 }
 
@@ -222,7 +230,7 @@ function getDrougtData(startDate, endDate, steps, state) {
                     D2: parseFloat(record["D2"]),
                     D3: parseFloat(record["D3"]),
                     D4: parseFloat(record["D4"])
-                }
+                };
             else
                 return {date: date, None: 0, D0: 0, D1: 0, D2: 0, D3: 0, D4: 0}
         });
@@ -243,6 +251,12 @@ function updateInitText(text) {
     });
 }
 
+function updateMapSubtitle(date) {
+    $('#map-subtitle').fadeOut(200, function() {
+        $(this).text(date.toLocaleString('en-us', { month: "long" }) + ' ' + date.getFullYear()).fadeIn(300);
+    });
+}
+
 function plotUS() {
     updateInitText("Plotting map");
     d3.csv("data/states.csv", function(data) {
@@ -256,14 +270,19 @@ function plotUS() {
         .then(result => finishInit());
 }
 
+// function reinitVis(){
+//     if (animationActive && !animationPaused) { startAnimate(); }
+//     reloadPlot();
+// }
+
 function updatePlots() {
     var self = this;
-    let from = this.uiState.from;
-    let to = this.uiState.to;
-    let state = this.uiState.currentState;
+    let from = uiState.from;
+    let to = uiState.to;
+    let state = uiState.currentState;
 
     getDrougtData(from, to,100,state)
-   // plotFireDroughtHist(state);
+    // plotFireDroughtHist(state);
     let dt = Date.now();
     loadFires(from.getFullYear(), state).then(data => {
         let dataslice = getSliceWithinRange(from, to, data);
@@ -276,6 +295,19 @@ function updatePlots() {
     });
 }
 
+function reloadPlots() {
+    d3.select('#graphDroughtArea svg').remove();
+    plot = new DroughtAreaPlot();
+    plot.initPlot();
+
+    d3.select('#graphFireDroughtHist svg').remove();
+    fireDroughtPlot = new FireDroughtPlot();
+    fireDroughtPlot.initPlot();
+
+    d3.select('#graphFiresTimePlot svg').remove();
+    fireTimePlot = new FireTimePlot();
+    fireTimePlot.initPlot();
+}
 
 function initTimeline(){
     updateInitText("Loading timeline");
@@ -296,11 +328,8 @@ function initTimeline(){
         });
     }
 
+    let rangeChangeDelay;
     var self = this;
-
-
-    let initFrom = new Date(2003, 1, 8);
-    let initTo = new Date(2003, 12, 23);
 
     $(".date-slider").ionRangeSlider({
         skin: "flat",
@@ -308,57 +337,76 @@ function initTimeline(){
         grid: true,
         min: dateToTS(new Date(2000, 0, 1)),
         max: dateToTS(new Date(2015, 11, 31)),
-        from: dateToTS(initFrom),
-        to: dateToTS(initTo),
+        from: dateToTS(uiState.from),
+        to: dateToTS(uiState.to),
         prettify: tsToDate,
-        onFinish: function (data) {
-            self.uiState.from = new Date(data.from);
-            self.uiState.to = new Date(data.to);
-            updatePlots()
-        }
+        onChange: function (data) {
+            uiState.from = new Date(data.from);
+            uiState.to = new Date(data.to);
+            clearTimeout(rangeChangeDelay);
+            rangeChangeDelay = setTimeout(function () {updatePlots(); startAnimate()}, 500);
+        },
     });
-    uiState.from = initFrom;
-    uiState.to = initTo;
-
     initUI();
 }
 
 function initUI() {
     d3.selectAll(".menu-item a").on("click", function(e, d) {
+        d3.select(".plot-container .empty").style("display", "none");
         let id = d3.select(this).attr("data-graph");
-        console.log("click", id)
 
         // Hide all other plot graphs
-        d3.selectAll(".panel .empty, .panel .graph").style("display", "none");
+        d3.selectAll(".plot-container .graph").style("display", "none");
 
-        let selectedElement = d3.select(d3.select("#"+id).node().parentNode)
-        console.log(selectedElement, selectedElement.parentNode)
-        selectedElement.style("display", "block")
-
+        let selectedPlot = d3.select(d3.select("#"+id).node());
+        selectedPlot.style("display", "block")
         // Set currently selected plot to visible
         // el.attr("data-graph")
     });
 }
 
+function pauseAnimate(){
+    if (uiState.animationPaused){
+        uiState.animationPaused = false;
+        $(".timeline-control-container .pause-button").removeClass("active");
+        $(".timeline-control-container .pause-button").text("Pause");
+    } else {
+        uiState.animationPaused = true;
+        $(".timeline-control-container .pause-button").addClass("active");
+        $(".timeline-control-container .pause-button").text("Paused");
+    }
+}
+
 function startAnimate() {
-    console.log("start");
-    let date = new Date(Date.UTC(2001,0,1,0,0,0));
-    window.setInterval(function() {
-     //   console.log(date.toDateString());
-        let start =Date.now();
-        let colorPromise = colorDrought(date);
-        date = addDays(date, 30);
-        if (date.getFullYear() === 2002) {
-            date.setFullYear(2001);
+    uiState.animationActive = true;
+    if (uiState.animationPaused){
+        uiState.animationPaused = false;
+        $(".timeline-control-container .pause-button").removeClass("active");
+        $(".timeline-control-container .pause-button").text("Pause");
+    }
+    $(".timeline-control-container .start-button").text("Restart");
+    clearInterval(animationInterval);
+    let date = new Date(uiState.from);
+    animationInterval = window.setInterval(function() {
+        if (!uiState.animationPaused){
+            console.log(date.toDateString());
+            $('.map-subtitle').fadeOut(200, function() {
+                $(this).text(date.toLocaleString('en-us', { month: "long" }) + ' ' + date.getFullYear()).fadeIn(300);
+            });
+            let start = Date.now();
+            let colorPromise = colorDrought(date);
+            date.setMonth(date.getMonth() + 1);
+            if (date >= uiState.to) {
+                date = new Date(uiState.from.getTime());
+            }
+            colorPromise.then(result => {
+                let end = Date.now();
+                let diff = end - start;
+                //console.log("done in: " + diff);
+                loadDrought(date.getFullYear())
+            });
         }
-        colorPromise.then(result => {
-            let end = Date.now();
-            let diff = end - start;
-         //   console.log("done in: " + diff);
-            loadDrought(date.getFullYear())
-        });
     }, 2000);
-    console.log("Hello");
 }
 
 async function plotStates() {
@@ -366,8 +414,7 @@ async function plotStates() {
     updateInitText("Plotting US states");
     return new Promise((resolve, reject) => {
         d3.json("https://d3js.org/us-10m.v1.json", function (error, us) {
-            if (error)
-                reject(error)
+            if (error) reject(error);
 
             svg.append("g")
                 .attr("class", "states")
@@ -386,17 +433,13 @@ async function plotStates() {
                     }
                 });
 
-
             svg.append("path")
                 .attr("class", "state-borders")
                 .attr("d", path(topojson.mesh(us, us.objects.states, function (a, b) {
                     return a !== b;
                 })));
-
             console.log("state loaded")
             drawGradient();
-
-
             resolve();
         });
     });
@@ -512,7 +555,7 @@ async function loadDrought(year, state) {
 }
 
 async function plotMTBS() {
-    console.log("Plotting MTBS")
+    updateInitText("Plotting burn severity data")
     return new Promise((resolve, reject) => {
         d3.json("data/mtbs_perims_DD_2000_2015.json", function (error, fireArea) {
             if (error) reject(error);
@@ -582,7 +625,6 @@ function searchStart(data, date) {
         return index;
     }
     return lower
-
 }
 
 

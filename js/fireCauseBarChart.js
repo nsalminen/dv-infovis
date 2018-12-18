@@ -18,10 +18,12 @@ function FireCauseBarChart() {
     ];
 
     function initPlot() {
-        let margin = {top: 20, right: 100, bottom: 30, left: 50};
-        self.width = 960 - margin.left - margin.right;
-        self.height = 500 - margin.top - margin.bottom;
-        self.graph = d3.select('#graphFiresCauseBarChart');
+        let margin = {top: 10, right: 100, bottom: 50, left: 50};
+        innerHeight = $( ".plot-container" ).innerHeight();
+        innerWidth = $( ".plot-container" ).innerWidth();
+        self.width = innerWidth - margin.left - margin.right;
+        self.height = innerHeight - margin.top - margin.bottom;
+        self.graph = d3.select('#graphFiresCauseBarChart').append("svg");
         self.x = d3.scaleBand().range([0, self.width]).padding(0.1).domain(plotData.map(x=>x.cause));
         self.y = d3.scaleLinear().range([self.height, 0]).domain([0,10]);
 

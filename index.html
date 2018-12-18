@@ -20,15 +20,15 @@
         </div>
         <p class="empty-title h5">Loading components...</p>
         <div class="empty-action">
-
         </div>
         <p class="empty-subtitle" id="init-progress-text"></p>
     </div>
     <div class="columns">
         <div class="column col-7 upper">
             <div class="panel bg-white">
-                <div class="panel-header text-center">
+                <div class="map-header panel-header text-center">
                     <div class="panel-title h6">Map of the United States of America</div>
+                    <div class="panel-title map-subtitle">Map of the United States of America</div>
                 </div>
                 <div class="panel-body">
                     <div class="map-container"></div>
@@ -59,27 +59,23 @@
                     </div>
                 </div>
 
-                <div class="empty">
-                    <div class="empty-icon">
-                        <i class="icon icon-upward"></i>
+                <div class="plot-container panel-body">
+                    <div class="empty">
+                        <div class="empty-icon">
+                            <i class="icon icon-upward"></i>
+                        </div>
+                        <p class="empty-title h5">Select a plot type</p>
+                        <p class="empty-subtitle">Click the dropdown above to select a plot</p>
                     </div>
-                    <p class="empty-title h5">Select a plot type</p>
-                    <p class="empty-subtitle">Click the dropdown above to select a plot</p>
+                    <div id="graphDroughtArea" class="graph">
+                    </div>
+                    <div id="graphFireDroughtHist" class="graph">
+                    </div>
+                    <div id="graphFiresTimePlot" class="graph">
+                    </div>
+                    <div id="graphFiresCauseBarChart" class="graph">
+                    </div>
                 </div>
-
-                <div class="graph">
-                    <svg id="graphDroughtArea" class="plot"></svg>
-                </div>
-                <div class="graph">
-                    <svg id="graphFireDroughtHist" class="plot"></svg>
-                </div>
-                <div class="graph">
-                    <svg id="graphFiresTimePlot" class="plot"></svg>
-                </div>
-                <div class="graph">
-                    <svg id="graphFiresCauseBarChart" class="plot"></svg>
-                </div>
-
             </div>
         </div>
         <div class="column col-7 lower">
@@ -87,6 +83,10 @@
                 <div class="panel-body">
                     <div class="timeline-container">
                         <input type="text" class="date-slider" name="my_range" value="" />
+                        <div class="text-center timeline-control-container btn-group btn-group-block">
+                            <button class="btn btn-primary btn-sm start-button" onclick="startAnimate()">Start</button>
+                            <button class="btn btn-primary btn-sm pause-button" onclick="pauseAnimate()">Pause</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -94,7 +94,7 @@
         <div class="column col-5 lower">
             <div class="panel bg-white">
                 <div class="panel-header text-center">
-                    <div class="panel-title h6">Legend</div>
+                    <div class="panel-title h6">Map controls</div>
                 </div>
                 <div class="panel-body">
 

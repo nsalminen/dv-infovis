@@ -465,22 +465,19 @@ function addDays(date, days) {
     return result;
 }
 
+let colorInterpolate = d3.scaleLinear()
+    .domain([0, 1])
+    .range(["hsl(0,0%,90%)", "hsl(0,100%,50%)"]);
 function calculateColor(drought) {
     if (drought !== undefined) {
-        let droughtFactor = drought.D0 * 0.2 + drought.D1 * 0.4 + drought.D2 * 0.6 + drought.D3 * 0.8 + drought.D4 * 1;
+        let droughtFactor = parseFloat(drought.D0) * 0.2 + parseFloat(drought.D1) * 0.4 +  parseFloat(drought.D2) * 0.6
+            +  parseFloat(drought.D3) * 0.8 +  parseFloat(drought.D4) * 1;
         droughtFactor = droughtFactor / 100;
-        return d3.interpolateHcl('#00AA00', '#AA0000')(droughtFactor);
+        return colorInterpolate(droughtFactor);
     } else {
         return "light-gray";
     }
 }
-
-function colorMap() {
-    svg.selectAll(".counties > path").data(counties).attr("d", path).attr("fill", function (d) {
-        return calculateColor(d.drought);
-    });
-}
-
 
 /**
  * Use binary search to find the first record that has the date in its range.

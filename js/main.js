@@ -356,6 +356,18 @@ function initUI() {
         // Set currently selected plot to visible
         // el.attr("data-graph")
     });
+
+    d3.selectAll(".resize-button-right").on("click", function(e, d) {
+        d3.selectAll(".right-column")
+            .classed("col-5", false).classed("col-7", true);
+        d3.selectAll(".left-column").classed("col-5", true).classed("col-7", false);
+        reloadPlots();
+    });
+    d3.selectAll(".resize-button-left").on("click", function(e, d) {
+        d3.selectAll(".left-column").classed("col-5", false).classed("col-7", true);
+        d3.selectAll(".right-column").classed("col-5", true).classed("col-7", false);
+        reloadPlots();
+    });
 }
 
 function pauseAnimate(){

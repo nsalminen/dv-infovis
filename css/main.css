@@ -51,6 +51,26 @@ body {
     padding-bottom: 0 !important;
 }
 
+.resize-box {
+    position: relative;
+}
+
+.resize-element {
+    position: absolute;
+    bottom: 20px;
+
+    color: lightgray;
+}
+.resize-button-left{
+    right: 30px;
+}
+.resize-button-right{
+    left: 30px;
+}
+.resize-element :hover {
+    color: darkgray;
+}
+
 .timeline-container {
     padding: 30px;
 }

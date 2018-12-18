@@ -90,6 +90,47 @@ async function loadFires(year, state) {
     return this.fires[year][state];
 }
 
+async function plotFires(startDate, endDate, state, filterSet) {
+    if (state === undefined) {
+        // state = "CA";           // @TODO: Return Promise.all instead
+        return Promise.all(this.states.map(s => plotFires(startDate, endDate, s.Code, filterSet)));
+    }
+
+    return new Promise((resolve, reject) => {
+        let fireYear = date.getFullYear()
+        
+        loadFires(fireYear, state).then(function (firedata) {
+            // Comb through csv to figure out what data to keep
+            let newFireData = firedata.filter(function (e) {
+                return !(e["FIRE_SIZE_CLASS"] === "B") && filterSet.has(e['STAT_CAUSE_CODE']);
+            });
+            let slice = getSliceWithinRange(startDate, endDate, newFireData);
+
+            // Plot fires
+            svg.selectAll("circle."+state)
+                .data(slice).enter()
+                .append("circle")
+                .attr("cx", function (d) { return projection([parseFloat(d['LONGITUDE']), parseFloat(d['LATITUDE'])])[0]; })
+                .attr("cy", function (d) { return projection([parseFloat(d['LONGITUDE']), parseFloat(d['LATITUDE'])])[1]; })
+                .attr("r", "2px")
+                .attr("fill", function(d) {
+                    if (d['FIRE_SIZE_CLASS'] === 'B') {
+                        return 'blue';
+                    }
+                    if (d['FIRE_SIZE_CLASS'] === 'C') {
+                        return 'yellow';
+                    }
+                    return 'red';
+                })
+                .attr("class", state)
+            svg.selectAll("circle."+state)
+                .data(slice).exit().remove()
+
+            resolve();
+        });
+    });
+}
+
 function getSliceWithinRange(startDate, endDate, firedata)
 {
     var end;
@@ -121,7 +162,7 @@ function getSliceWithinRange(startDate, endDate, firedata)
             return fireEnd >= startDate;
         } else {
             // If not known, and fireStart + month is > startDate
-            return addDays(fireStart, 30) >= startDate;
+            return addDays(fireStart, 7) >= startDate;
         }
     });
 
@@ -410,7 +451,7 @@ async function plotStates() {
     return new Promise((resolve, reject) => {
         d3.json("https://d3js.org/us-10m.v1.json", function (error, us) {
             if (error) reject(error);
-
+                  
             svg.append("g")
                 .attr("class", "states")
                 .selectAll("path")
@@ -495,7 +536,7 @@ function drawGradient() {
 function plotCounties() {
     updateInitText("Plotting US counties");
     return new Promise((resolve, reject) => {
-    d3.json("https://d3js.org/us-10m.v1.json", function (error, us) {
+        d3.json("https://d3js.org/us-10m.v1.json", function (error, us) {
         if (error)
             reject(error);
 

@@ -30,7 +30,7 @@ function FireTimePlot() {
         self.line = d3.line()
         			.x(function(d) { return self.x(d.date) })
         			.y(function(d) { return self.y(d.count)})
-
+      
         redraw();
 
 	}
@@ -52,8 +52,13 @@ function FireTimePlot() {
         self.entries = []
 
 		var maxNumberOfFires = 0;
+
+        var searchData = plotData.filter(function (e) {
+            return e['CONT_DATE'] !== '';
+        });
+
         for (var date = startDate; date <= endDate; date = addDays(date, 1)) {
-        	let numberOfFires = getSliceWithinRange(date, date, plotData).length;
+        	let numberOfFires = getSliceWithinRange(date, date, searchData).length;
         	maxNumberOfFires = Math.max(numberOfFires, maxNumberOfFires);
 
         	self.entries.push({date: date, count: numberOfFires});
@@ -68,8 +73,7 @@ function FireTimePlot() {
 
         // Plot entries per day
         // self.plotLine.datum(entries).attr("d", line);
-
-
+    
         // self.plot.selectAll('rect').data(bins).exit().remove();
         // self.plot.selectAll('rect').data(bins).enter().append("rect");
         // self.plot.selectAll("rect")

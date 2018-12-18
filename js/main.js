@@ -7,7 +7,17 @@ var svg = d3.select('.map-container').append("svg")
 
 let colorInterpolate = d3.scaleLinear()
     .domain([0, 1])
-    .range(["hsl(0,0%,90%)", "hsl(35,100%,50%)"]);
+    .range(["#fff5eb", "#7f2704"]).interpolate(d3.interpolateHcl);
+/* colorInterpolate = d3.scaleLinear()
+    .domain([0, 1/5, 2/5, 3/5, 4/5, 1])
+    .range([
+        '#feedde',
+        '#fdd0a2',
+        '#fdae6b',
+        '#fd8d3c',
+        '#e6550d',
+        '#a63603'
+    ]) .interpolate(d3.interpolateHcl)*/
 
 
 var projection = d3.geoAlbersUsa()

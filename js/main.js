@@ -7,7 +7,7 @@ var svg = d3.select('.map-container').append("svg")
 
 let colorInterpolate = d3.scaleLinear()
     .domain([0, 1])
-    .range(["hsl(0,0%,90%)", "hsl(0,100%,50%)"]);
+    .range(["hsl(0,0%,90%)", "hsl(35,100%,50%)"]);
 
 
 var projection = d3.geoAlbersUsa()

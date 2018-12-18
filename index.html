@@ -52,6 +52,9 @@
                             <li class="menu-item">
                                 <a data-graph="graphFiresTimePlot">Fires vs Time</a>
                             </li>
+                            <li class="menu-item">
+                                <a data-graph="graphFiresCauseBarChart">Fires vs Cause</a>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -72,6 +75,9 @@
                 </div>
                 <div class="graph">
                     <svg id="graphFiresTimePlot" class="plot"></svg>
+                </div>
+                <div class="graph">
+                    <svg id="graphFiresCauseBarChart" class="plot"></svg>
                 </div>
 
             </div>
@@ -103,6 +109,7 @@
 <script src="https://d3js.org/topojson.v2.min.js"></script>
 <script src="js/droughtAreaPlot.js"></script>
 <script src="js/firesDroughtHist.js"></script>
+<script src="js/fireCauseBarChart.js"></script>
 <script src="js/firesTimePlot.js"></script>
 <script src="js/main.js"></script>
 </body>

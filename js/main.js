@@ -36,6 +36,9 @@ fireDroughtPlot.initPlot();
 
 let fireTimePlot = new FireTimePlot();
 fireTimePlot.initPlot();
+
+let fireCauseBarChart = new FireCauseBarChart();
+fireCauseBarChart.initPlot();
 // @TODO: Hook to update on state select
 
 
@@ -100,6 +103,19 @@ function getSliceWithinRange(startDate, endDate, firedata)
     return plotdata;
 }
 
+function plotFireCauseBar(fireData) {
+    let causeCount = [];
+    for (let index = 0; index < fireData.length; ++index) {
+        let fire = fireData[index];
+        let code = parseInt(fire["STAT_CAUSE_CODE"]);
+            if (causeCount[code] === undefined) {
+                causeCount[code] = 0;
+            }
+        causeCount[code] += 1;
+    }
+
+    fireCauseBarChart.plot(causeCount);
+}
 
 function plotFireDroughtHist(fireData, state, from, to) {
     //TODO get fire dates and counties
@@ -240,6 +256,7 @@ function updatePlots() {
         fireTimePlot.plot(from, to, dataslice);
 
         plotFireDroughtHist(dataslice, state, from, to);
+        plotFireCauseBar(dataslice)
         // @TODO: Call update on firesTimePlot() with this data
     });
 }

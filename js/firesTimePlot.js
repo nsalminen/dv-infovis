@@ -46,9 +46,6 @@ function FireTimePlot() {
         			.x(function(d) { return self.x(d.date) })
         			.y(function(d) { return self.y(d.count)})
 
-		// Histogram bin per 10 days or, or just check the fires per day?
-		console.log("Berend: Init complete")
-
 		// @TODO: Enable animation
 
 	}
@@ -67,8 +64,13 @@ function FireTimePlot() {
         var entries = []
 
 		var maxNumberOfFires = 0;
+
+        var searchData = plotData.filter(function (e) {
+            return e['CONT_DATE'] !== '';
+        });
+
         for (var date = startDate; date <= endDate; date = addDays(date, 1)) {
-        	let numberOfFires = getSliceWithinRange(date, date, plotData).length;
+        	let numberOfFires = getSliceWithinRange(date, date, searchData).length;
         	maxNumberOfFires = Math.max(numberOfFires, maxNumberOfFires);
 
         	entries.push({date: date, count: numberOfFires});
@@ -87,28 +89,7 @@ function FireTimePlot() {
 
         // Plot entries per day
         // self.plotLine.datum(entries).attr("d", line);
-        console.log(self.plotLine)
         self.plotLine.attr("d", self.line(entries));
-		console.log("Finished updating plot!");
-        // self.plot.selectAll('rect').data(bins).exit().remove();
-        // self.plot.selectAll('rect').data(bins).enter().append("rect");
-        // self.plot.selectAll("rect")
-        //     .data(bins)
-        //     .transition()
-        //     .duration(500)
-        //     .attr("transform", function(d) {
-        //         return "translate(" + self.x(d.x0) + "," +  self.y(d.length)  + ")"; }) //self.y(d.length)
-        //     .attr("fill", "blue")
-        //     .attr("x", gapSize)
-        //     .attr("width", width)
-        //     .attr("height", function(d) {
-        //         return self.height- self.y(d.length)});
-
-
-        // // add the y Axis
-        // self.yAxis.transition().call(d3.axisLeft(self.y));
-
-        // console.log("Berend: Plot complete")
 	}
 
 	return {

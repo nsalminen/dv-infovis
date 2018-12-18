@@ -102,7 +102,7 @@ async function plotFires(startDate, endDate, state, filterSet) {
         loadFires(fireYear, state).then(function (firedata) {
             // Comb through csv to figure out what data to keep
             let newFireData = firedata.filter(function (e) {
-                return !(e["FIRE_SIZE_CLASS"] == "B") && filterSet.has(e['STAT_CAUSE_CODE']);
+                return !(e["FIRE_SIZE_CLASS"] === "B") && filterSet.has(e['STAT_CAUSE_CODE']);
             });
             let slice = getSliceWithinRange(startDate, endDate, newFireData);
 
@@ -114,10 +114,10 @@ async function plotFires(startDate, endDate, state, filterSet) {
                 .attr("cy", function (d) { return projection([parseFloat(d['LONGITUDE']), parseFloat(d['LATITUDE'])])[1]; })
                 .attr("r", "2px")
                 .attr("fill", function(d) {
-                    if (d['FIRE_SIZE_CLASS'] == 'B') {
+                    if (d['FIRE_SIZE_CLASS'] === 'B') {
                         return 'blue';
                     }
-                    if (d['FIRE_SIZE_CLASS'] == 'C') {
+                    if (d['FIRE_SIZE_CLASS'] === 'C') {
                         return 'yellow';
                     }
                     return 'red';
@@ -536,7 +536,7 @@ function drawGradient() {
 function plotCounties() {
     updateInitText("Plotting US counties");
     return new Promise((resolve, reject) => {
-    d3.json("http://localhost:8000/data/us-10m.v1.json", function (error, us) {
+        d3.json("https://d3js.org/us-10m.v1.json", function (error, us) {
         if (error)
             reject(error);
 

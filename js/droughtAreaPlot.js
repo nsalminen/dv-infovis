@@ -2,15 +2,11 @@ function DroughtAreaPlot() {
     let self = this;
 
     function initPlot() {
-        innerHeight = $( ".plot-container" ).innerHeight();
-        innerWidth = $( ".plot-container" ).innerWidth();
-        let margin = {top: 10, right: 100, bottom: 50, left: 50};
-        let width = innerWidth - margin.left - margin.right;
-        let height = innerHeight - margin.top - margin.bottom;
+        self.x = d3.scaleTime();
+        self.y = d3.scaleLinear().domain([0, 100]);
 
-        self.graph = d3.select('#graphDroughtArea').append("svg");
-        self.x = d3.scaleTime().range([0, width]);
-        self.y = d3.scaleLinear().range([height, 0]).domain([0, 100]);
+        initBasisPlot(self, '#graphDroughtArea', 'Date', 'Percentage of land');
+        setPlotSizeValues(self);
 
         self.area = d3.area()
             .curve(d3.curveMonotoneX)
@@ -25,13 +21,6 @@ function DroughtAreaPlot() {
             });
 
         self.keys = ["None", "D0", "D1", "D2", "D3", "D4"]
-//        let interpolate = d3.interpolateHcl( '#00AA00', '#AA0000');
-        let colorInterpolate = d3.scaleLinear()
-            .domain([0, 1])
-            .range(["hsl(0,0%,90%)", "hsl(0,100%,50%)"]);
-     //   self.colors = d3.scaleOrdinal(d3.schemeCategory10).domain(self.keys).range(self.keys.map((d,i) => interpolate(i / (self.keys.length - 1))));
-        //self.colors = d3.scaleOrdinal(d3.schemeCategory10).domain(self.keys).range(self.keys.map((d,i) => colorInterpolate(i / (self.keys.length - 1))));
-
         self.colors = d3.scaleOrdinal(d3.schemeCategory10).domain(self.keys).range(
         [
         '#4daf4a',
@@ -46,28 +35,15 @@ function DroughtAreaPlot() {
             .order(d3.stackOrderReverse)
             .offset(d3.stackOffsetNone)
 
-        self.plot = self.graph
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform",
-                "translate(" + margin.left + "," + margin.top + ")");
-
-        // add the X Axis
-        self.xAxis = self.plot.append("g")
-            .attr("transform", "translate(0," + height + ")");
-        self.xAxis
-            .call(d3.axisBottom(self.x));
-
-        // add the Y Axis
-        self.plot.append("g")
-            .call(d3.axisLeft(self.y));
+        self.yAxis
+            .call(d3.axisLeft(self.y)
+                .tickFormat(d => d+'%'));
 
         self.legend = self.graph.selectAll(".legend")
             .data(self.colors.domain()).enter()
             .append("g")
             .attr("class","legend")
-            .attr("transform", "translate(" + (width +70 ) + "," + (margin.top+10)+ ")");
+            .attr("transform", "translate(" + (self.width +70 ) + "," + (self.margin.top+10)+ ")");
 
         self.legend.append("rect")
             .attr("x", 0)
@@ -82,29 +58,43 @@ function DroughtAreaPlot() {
             .attr("dy", "0.75em")
             .attr("y", function(d, i) { return 20 * i; })
             .text(function(d) {return d});
+
+        redraw();
+    }
+
+    function redraw(duration) {
+        if (duration === undefined)
+            duration = 0;
+        setPlotSizeValues(self);
+        self.yAxis
+            .call(d3.axisLeft(self.y)
+                .tickFormat(d => d+'%'));
+        self.graph.selectAll(".legend").data(self.colors.domain()).attr("transform", "translate(" + (self.width +70 ) + "," + (self.margin.top+10)+ ")");
+
+        if ( self.series !== undefined) {
+
+            self.plot.selectAll('.droughtArea').data(self.series)
+                .transition()
+                .duration(duration)
+                .attr("d", self.area)
+                .style("fill", function (d, i) {
+                    return self.colors(i);
+                });
+        }
     }
 
     function plotDrought(plotData) {
         self.x.domain(d3.extent(plotData, function (d) {
             return d.date;
         }));
-        self.xAxis
-            .call(d3.axisBottom(self.x));
-        let series = self.stack(plotData);
-
-        self.plot.selectAll('.droughtArea').data(series).exit().remove();
-        self.plot.selectAll('.droughtArea').data(series).enter()
+        self.series = self.stack(plotData);
+        self.plot.selectAll('.droughtArea').data(self.series).exit().remove();
+        self.plot.selectAll('.droughtArea').data(self.series).enter()
             .append("path").attr("class", "droughtArea");
-        self.plot.selectAll('.droughtArea').data(series)
-            .transition()
-            .duration(500)
-            .attr("d", self.area)
-            .style("fill", function (d, i) {
-                return self.colors(i);
-            });
+        redraw(500);
     }
 
     return {
-        initPlot, plotDrought
+        initPlot, plotDrought, redraw
     };
 }

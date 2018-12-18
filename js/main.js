@@ -46,8 +46,8 @@ initTimeline();
 
 plotUS();
 
-let plot = new DroughtAreaPlot();
-plot.initPlot();
+let droughtAreaPlot = new DroughtAreaPlot();
+droughtAreaPlot.initPlot();
 
 let fireDroughtPlot = new FireDroughtPlot();
 fireDroughtPlot.initPlot();
@@ -235,7 +235,7 @@ function getDrougtData(startDate, endDate, steps, state) {
             else
                 return {date: date, None: 0, D0: 0, D1: 0, D2: 0, D3: 0, D4: 0}
         });
-        plot.plotDrought(plotData);
+        droughtAreaPlot.plotDrought(plotData);
     })
 }
 
@@ -297,17 +297,10 @@ function updatePlots() {
 }
 
 function reloadPlots() {
-    d3.select('#graphDroughtArea svg').remove();
-    plot = new DroughtAreaPlot();
-    plot.initPlot();
-
-    d3.select('#graphFireDroughtHist svg').remove();
-    fireDroughtPlot = new FireDroughtPlot();
-    fireDroughtPlot.initPlot();
-
-    d3.select('#graphFiresTimePlot svg').remove();
-    fireTimePlot = new FireTimePlot();
-    fireTimePlot.initPlot();
+    droughtAreaPlot.redraw();
+    fireDroughtPlot.redraw();
+    fireTimePlot.redraw();
+    fireCauseBarChart.redraw();
 }
 
 function initTimeline(){

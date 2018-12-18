@@ -141,3 +141,7 @@ body {
 .fireArea {
     fill: red;
 }
+
+.plot text{
+    fill: black;
+}

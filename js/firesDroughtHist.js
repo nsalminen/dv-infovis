@@ -13,7 +13,7 @@ function FireDroughtPlot() {
         self.histogram = d3.histogram()
             .value(function(d) { return d; })
             .domain(self.x.domain())
-            .thresholds(10);
+            .thresholds(20);
 
         self.plot = self.graph.attr("width", width + margin.left + margin.right)
             .attr("height", self.height + margin.top + margin.bottom)
@@ -30,8 +30,8 @@ function FireDroughtPlot() {
 
     function plot(plotData) {
         let bins = self.histogram(plotData);
-        let gapSize = 1;
-        let width = self.x(bins[0].x1) - self.x(bins[0].x0) - gapSize;
+        let gapSize = 2;
+        let width = self.x(bins[0].x1) - self.x(bins[0].x0) - 2 * gapSize - 1;
 
         //TODO maybe (semi-)fixed domain?
         self.y = self.y.domain([0,d3.max(bins, b=>b.length)]);
@@ -45,7 +45,7 @@ function FireDroughtPlot() {
             .attr("transform", function(d) {
                 return "translate(" + self.x(d.x0) + "," +  self.y(d.length)  + ")"; }) //self.y(d.length)
             .attr("fill", "blue")
-            .attr("x", gapSize)
+            .attr("x", gapSize + 1)
             .attr("width", width)
             .attr("height", function(d) {
                 return self.height- self.y(d.length)});

@@ -5,6 +5,21 @@ var svg = d3.select('.map-container').append("svg")
     .attr('preserveAspectRatio','xMinYMin')
     .append("g");
 
+let colorInterpolate = d3.scaleLinear()
+    .domain([0, 1])
+    .range(["#fff5eb", "#7f2704"]).interpolate(d3.interpolateHcl);
+/* colorInterpolate = d3.scaleLinear()
+    .domain([0, 1/5, 2/5, 3/5, 4/5, 1])
+    .range([
+        '#feedde',
+        '#fdd0a2',
+        '#fdae6b',
+        '#fd8d3c',
+        '#e6550d',
+        '#a63603'
+    ]) .interpolate(d3.interpolateHcl)*/
+
+
 var projection = d3.geoAlbersUsa()
     .scale(1280) // Scale taken from projection of us-10m.v1.json
     .translate([960 / 2, 600 / 2]);
@@ -36,14 +51,15 @@ plotUS();
 
 let plot = new DroughtAreaPlot("graphDroughtArea");
 plot.initPlot();
-plotStackedGraph();
 
 let fireDroughtPlot = new FireDroughtPlot("graphFireDroughtHist");
 fireDroughtPlot.initPlot();
-plotFireDroughtHist();
 
 let fireTimePlot = new FireTimePlot("graphFiresTimePlot");
 fireTimePlot.initPlot();
+
+let fireCauseBarChart = new FireCauseBarChart();
+fireCauseBarChart.initPlot();
 // @TODO: Hook to update on state select
 
 var resizeDelay;
@@ -113,18 +129,69 @@ function getSliceWithinRange(startDate, endDate, firedata)
     return plotdata;
 }
 
+function plotFireCauseBar(fireData) {
+    let causeCount = [];
+    for (let index = 0; index < fireData.length; ++index) {
+        let fire = fireData[index];
+        let code = parseInt(fire["STAT_CAUSE_CODE"]);
+            if (causeCount[code] === undefined) {
+                causeCount[code] = 0;
+            }
+        causeCount[code] += 1;
+    }
+    fireCauseBarChart.plot(causeCount);
+}
 
-function plotFireDroughtHist() {
+function plotFireDroughtHist(fireData, state, from, to) {
     //TODO get fire dates and counties
-    let data = Array.from({length: 40}, () => Math.random());
-    fireDroughtPlot.plot(data);
+    let yearStart = from.getFullYear();
+    let yearEnd = to.getFullYear();
+    let years = Array.apply(null, Array(yearEnd - yearStart+ 1)).map(function (x, i) { return i + yearStart; })
+
+    let compactFireData = {}
+    for (let index = 0; index < fireData.length; ++index) {
+        let fire = fireData[index];
+        let dateString = fire["DISCOVERY_DATE"];
+        let county = parseInt(fire["FIPS"]);
+        if (!(dateString in compactFireData))
+            compactFireData[dateString] = [];
+        if (!(county in compactFireData[dateString]))
+            compactFireData[dateString][county] = 0;
+        compactFireData[dateString][county] += 1;
+    }
+    Promise.all(years.map(x=>loadDrought(x, state))).then(droughtData => {
+        let plotData = [];
+        for (let key in compactFireData) {
+            let date = new Date(Date.parse(key));
+            let year = date.getFullYear();
+            let dIndex = years.indexOf(year);
+            let drought = droughtData[dIndex];
+            let start = searchStart(drought, date);
+            let droughtDate = date;
+            while (droughtDate <= date && start < drought.length) {
+                let d = drought[start];
+                start++;
+                droughtDate = Date.parse(d.ValidStart);
+                let fips = parseInt(d.FIPS);
+                if (fips in compactFireData[key]) {
+                    let number = compactFireData[key][fips];
+                    compactFireData[key][fips] = 0;
+                    let D0 = parseFloat(d["D0"]);
+                    let D1 = parseFloat(d["D1"]);
+                    let D2 = parseFloat(d["D2"]);
+                    let D3 = parseFloat(d["D3"]);
+                    let D4 = parseFloat(d["D4"]);
+                    let drought = (D0 * 0.2 + D1 * 0.4 + D2 * 0.6 + D3 * 0.8 + D4 * 1)/100;
+                    for (let i = 0; i < number; i++) {
+                        plotData.push(drought)
+                    }
+                }
+            }
+        }
+        fireDroughtPlot.plot(plotData);
+    });
 }
 
-
-function plotStackedGraph() {
-    //getDrougtData(tlRangeFrom, tlRangeTo, 30, state)
-    getDrougtData(uiState.from, uiState.to, 30, uiState.currentState);
-}
 
 
 function getDrougtData(startDate, endDate, steps, state) {
@@ -216,14 +283,16 @@ function updatePlots() {
     let to = this.uiState.to;
     let state = this.uiState.currentState;
 
-    plotStackedGraph();
-    plotFireDroughtHist();
-
+    getDrougtData(from, to,100,state)
+    // plotFireDroughtHist(state);
+    let dt = Date.now();
     loadFires(from.getFullYear(), state).then(data => {
         let dataslice = getSliceWithinRange(from, to, data);
-        console.log("resulting data", dataslice, from, to, state);
+        console.log("resulting data", dataslice, from, to, state)
         fireTimePlot.plot(from, to, dataslice);
 
+        plotFireDroughtHist(dataslice, state, from, to);
+        plotFireCauseBar(dataslice)
         // @TODO: Call update on firesTimePlot() with this data
     });
 }
@@ -373,11 +442,63 @@ async function plotStates() {
                 .attr("d", path(topojson.mesh(us, us.objects.states, function (a, b) {
                     return a !== b;
                 })));
-
-            console.log("state loaded");
+            console.log("state loaded")
+            drawGradient();
             resolve();
         });
     });
+}
+
+function drawGradient() {
+    let width = 300;
+    let height = 20;
+    //way to complicate to create a legend in the center
+    let legend = svg.append('g')
+        .attr("transform", "translate(" + (-width/2) + "," + 0  + ")")
+        .append('svg').attr("x","50%");
+    let defs = legend.append("defs");
+
+    let linearGradient = defs.append("linearGradient")
+        .attr("id", "map-gradient");
+    linearGradient
+        .attr("x1", "0%")
+        .attr("y1", "0%")
+        .attr("x2", "100%")
+        .attr("y2", "0%");
+
+    linearGradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", colorInterpolate(0)); //light blue
+
+
+    linearGradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", colorInterpolate(1));
+
+
+    legend.append("rect")
+        .attr("width", width)
+        .attr("height", height)
+
+        .style("fill", "url(#map-gradient)");
+
+
+    let z = d3.scaleOrdinal()
+        .range([0, width])
+        .domain(["No drought", "Severe drought"]);
+
+    let zAxis = d3.axisBottom()
+        .scale(z);
+
+
+    legend.append("g")
+        .attr("class", "z axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(zAxis)
+
+    legend.selectAll("text").filter(t => t == "No drought").style("text-anchor", "start");
+    legend.selectAll("text").filter(t => t == "Severe drought").style("text-anchor", "end");
+
 }
 
 function plotCounties() {
@@ -461,20 +582,16 @@ function addDays(date, days) {
     return result;
 }
 
+
 function calculateColor(drought) {
     if (drought !== undefined) {
-        let droughtFactor = drought.D0 * 0.2 + drought.D1 * 0.4 + drought.D2 * 0.6 + drought.D3 * 0.8 + drought.D4 * 1;
+        let droughtFactor = parseFloat(drought.D0) * 0.2 + parseFloat(drought.D1) * 0.4 +  parseFloat(drought.D2) * 0.6
+            +  parseFloat(drought.D3) * 0.8 +  parseFloat(drought.D4) * 1;
         droughtFactor = droughtFactor / 100;
-        return d3.interpolateHcl('#00AA00', '#AA0000')(droughtFactor);
+        return colorInterpolate(droughtFactor);
     } else {
         return "light-gray";
     }
-}
-
-function colorMap() {
-    svg.selectAll(".counties > path").data(counties).attr("d", path).attr("fill", function (d) {
-        return calculateColor(d.drought);
-    });
 }
 
 /**

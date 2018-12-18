@@ -24,11 +24,7 @@ var projection = d3.geoAlbersUsa()
     .scale(1280) // Scale taken from projection of us-10m.v1.json
     .translate([960 / 2, 600 / 2]);
 var pathProjection = d3.geoPath().projection(projection);
-
 var path = d3.geoPath();
-
-var tlRangeFrom = new Date(2000, 0, 1);
-var tlRangeTo = new Date(2001, 11, 31);
 var animationInterval;
 
 window.drought = {};
@@ -49,18 +45,20 @@ initTimeline();
 
 plotUS();
 
-let plot = new DroughtAreaPlot("graphDroughtArea");
+let plot = new DroughtAreaPlot();
 plot.initPlot();
 
-let fireDroughtPlot = new FireDroughtPlot("graphFireDroughtHist");
+let fireDroughtPlot = new FireDroughtPlot();
 fireDroughtPlot.initPlot();
 
-let fireTimePlot = new FireTimePlot("graphFiresTimePlot");
+let fireTimePlot = new FireTimePlot();
 fireTimePlot.initPlot();
 
 let fireCauseBarChart = new FireCauseBarChart();
 fireCauseBarChart.initPlot();
 // @TODO: Hook to update on state select
+
+//updatePlots();
 
 var resizeDelay;
 $(window).on('resize', function(){
@@ -279,9 +277,9 @@ function plotUS() {
 
 function updatePlots() {
     var self = this;
-    let from = this.uiState.from;
-    let to = this.uiState.to;
-    let state = this.uiState.currentState;
+    let from = uiState.from;
+    let to = uiState.to;
+    let state = uiState.currentState;
 
     getDrougtData(from, to,100,state)
     // plotFireDroughtHist(state);
@@ -299,17 +297,15 @@ function updatePlots() {
 
 function reloadPlots() {
     d3.select('#graphDroughtArea svg').remove();
-    plot = new DroughtAreaPlot(plot.containerName);
+    plot = new DroughtAreaPlot();
     plot.initPlot();
-    plotStackedGraph();
 
     d3.select('#graphFireDroughtHist svg').remove();
-    fireDroughtPlot = new FireDroughtPlot(fireDroughtPlot.containerName);
+    fireDroughtPlot = new FireDroughtPlot();
     fireDroughtPlot.initPlot();
-    plotFireDroughtHist();
 
     d3.select('#graphFiresTimePlot svg').remove();
-    fireTimePlot = new FireTimePlot(fireTimePlot.containerName);
+    fireTimePlot = new FireTimePlot();
     fireTimePlot.initPlot();
 }
 
@@ -362,7 +358,7 @@ function initUI() {
         // Hide all other plot graphs
         d3.selectAll(".plot-container .graph").style("display", "none");
 
-        selectedPlot = d3.select(d3.select("#"+id).node())
+        let selectedPlot = d3.select(d3.select("#"+id).node());
         selectedPlot.style("display", "block")
         // Set currently selected plot to visible
         // el.attr("data-graph")

@@ -5,6 +5,11 @@ var svg = d3.select('.map-container').append("svg")
     .attr('preserveAspectRatio','xMinYMin')
     .append("g");
 
+let colorInterpolate = d3.scaleLinear()
+    .domain([0, 1])
+    .range(["hsl(0,0%,90%)", "hsl(0,100%,50%)"]);
+
+
 var projection = d3.geoAlbersUsa()
     .scale(1280) // Scale taken from projection of us-10m.v1.json
     .translate([960 / 2, 600 / 2]);
@@ -329,7 +334,7 @@ function startAnimate() {
     console.log("start");
     let date = new Date(Date.UTC(2001,0,1,0,0,0));
     window.setInterval(function() {
-        console.log(date.toDateString());
+     //   console.log(date.toDateString());
         let start =Date.now();
         let colorPromise = colorDrought(date);
         date = addDays(date, 30);
@@ -339,7 +344,7 @@ function startAnimate() {
         colorPromise.then(result => {
             let end = Date.now();
             let diff = end - start;
-            console.log("done in: " + diff);
+         //   console.log("done in: " + diff);
             loadDrought(date.getFullYear())
         });
     }, 2000);
@@ -379,9 +384,64 @@ async function plotStates() {
                 })));
 
             console.log("state loaded")
+            drawGradient();
+
+
             resolve();
         });
     });
+}
+
+function drawGradient() {
+    let width = 300;
+    let height = 20;
+    //way to complicate to create a legend in the center
+    let legend = svg.append('g')
+        .attr("transform", "translate(" + (-width/2) + "," + 0  + ")")
+        .append('svg').attr("x","50%");
+    let defs = legend.append("defs");
+
+    let linearGradient = defs.append("linearGradient")
+        .attr("id", "map-gradient");
+    linearGradient
+        .attr("x1", "0%")
+        .attr("y1", "0%")
+        .attr("x2", "100%")
+        .attr("y2", "0%");
+
+    linearGradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", colorInterpolate(0)); //light blue
+
+
+    linearGradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", colorInterpolate(1));
+
+
+    legend.append("rect")
+        .attr("width", width)
+        .attr("height", height)
+
+        .style("fill", "url(#map-gradient)");
+
+
+    let z = d3.scaleOrdinal()
+        .range([0, width])
+        .domain(["No drought", "Severe drought"]);
+
+    let zAxis = d3.axisBottom()
+        .scale(z);
+
+
+    legend.append("g")
+        .attr("class", "z axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(zAxis)
+
+    legend.selectAll("text").filter(t => t == "No drought").style("text-anchor", "start");
+    legend.selectAll("text").filter(t => t == "Severe drought").style("text-anchor", "end");
+
 }
 
 function plotCounties() {
@@ -465,9 +525,7 @@ function addDays(date, days) {
     return result;
 }
 
-let colorInterpolate = d3.scaleLinear()
-    .domain([0, 1])
-    .range(["hsl(0,0%,90%)", "hsl(0,100%,50%)"]);
+
 function calculateColor(drought) {
     if (drought !== undefined) {
         let droughtFactor = parseFloat(drought.D0) * 0.2 + parseFloat(drought.D1) * 0.4 +  parseFloat(drought.D2) * 0.6

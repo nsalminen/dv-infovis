@@ -28,14 +28,17 @@ function DroughtAreaPlot() {
             .domain([0, 1])
             .range(["hsl(0,0%,90%)", "hsl(0,100%,50%)"]);
      //   self.colors = d3.scaleOrdinal(d3.schemeCategory10).domain(self.keys).range(self.keys.map((d,i) => interpolate(i / (self.keys.length - 1))));
-        self.colors = d3.scaleOrdinal(d3.schemeCategory10).domain(self.keys).range(self.keys.map((d,i) => colorInterpolate(i / (self.keys.length - 1))));
-/*
-        ['#fee5d9',
-        '#fcbba1',
-        '#fc9272',
-        '#fb6a4a',
-        '#de2d26',
-        '#a50f15']*/
+        //self.colors = d3.scaleOrdinal(d3.schemeCategory10).domain(self.keys).range(self.keys.map((d,i) => colorInterpolate(i / (self.keys.length - 1))));
+
+        self.colors = d3.scaleOrdinal(d3.schemeCategory10).domain(self.keys).range(
+        [
+        '#4daf4a',
+        '#377eb8',
+        '#984ea3',
+        '#ffff33',
+        '#ff7f00',
+        '#e41a1c']);
+
 
         self.stack = d3.stack().keys(self.keys)
             .order(d3.stackOrderReverse)

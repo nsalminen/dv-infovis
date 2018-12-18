@@ -5,8 +5,6 @@ var svg = d3.select('.map-container').append("svg")
     .attr('preserveAspectRatio','xMinYMin')
     .append("g");
 
-var graph = d3.select('.plot-container').append("svg");
-
 var projection = d3.geoAlbersUsa()
     .scale(1280) // Scale taken from projection of us-10m.v1.json
     .translate([960 / 2, 600 / 2]);

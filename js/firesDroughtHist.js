@@ -2,9 +2,11 @@ function FireDroughtPlot() {
     let self = this;
 
     function initPlot() {
-        let margin = {top: 20, right: 100, bottom: 30, left: 50};
-        let width = 960 - margin.left - margin.right;
-        self.height = 500 - margin.top - margin.bottom;
+        innerHeight = $( ".plot-container" ).innerHeight();
+        innerWidth = $( ".plot-container" ).innerWidth();
+        let margin = {top: 10, right: 100, bottom: 50, left: 50};
+        let width = innerWidth - margin.left - margin.right;
+        self.height = innerHeight - margin.top - margin.bottom;
         self.graph = d3.select('#graphFireDroughtHist');
         self.x = d3.scaleLinear().range([0, width]).domain([0,1]);
         self.y = d3.scaleLinear().range([self.height, 0]).domain([0,10]);

@@ -2,11 +2,13 @@ function DroughtAreaPlot() {
     let self = this;
 
     function initPlot() {
-        let margin = {top: 20, right: 100, bottom: 30, left: 50};
-        let width = 960 - margin.left - margin.right;
-        let height = 500 - margin.top - margin.bottom;
+        innerHeight = $( ".plot-container" ).innerHeight();
+        innerWidth = $( ".plot-container" ).innerWidth();
+        let margin = {top: 10, right: 100, bottom: 50, left: 50};
+        let width = innerWidth - margin.left - margin.right;
+        let height = innerHeight - margin.top - margin.bottom;
 
-        self.graph = d3.select('#graphDroughtArea')
+        self.graph = d3.select('#graphDroughtArea');
         self.x = d3.scaleTime().range([0, width]);
         self.y = d3.scaleLinear().range([height, 0]).domain([0, 100]);
 
@@ -29,7 +31,6 @@ function DroughtAreaPlot() {
         self.stack = d3.stack().keys(self.keys)
             .order(d3.stackOrderReverse)
             .offset(d3.stackOffsetNone)
-
 
         self.plot = self.graph
             .attr("width", width + margin.left + margin.right)

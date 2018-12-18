@@ -8,9 +8,12 @@ function FireTimePlot() {
 	let self = this;
 
 	function initPlot() {
-		let margin = {top: 20, right: 100, bottom: 30, left: 50};
-		let width = 960 - margin.left - margin.right;
-		self.height = 500 - margin.top - margin.bottom;
+        let margin = {top: 10, right: 100, bottom: 50, left: 50};
+        innerHeight = $( ".plot-container" ).innerHeight();
+        innerWidth = $( ".plot-container" ).innerWidth();
+		let width = innerWidth - margin.left - margin.right;
+		console.log("Firetime width: " + width);
+		self.height = innerHeight - margin.top - margin.bottom;
 		self.graph = d3.select('#graphFiresTimePlot');
 
 		// Range from startdate to enddate

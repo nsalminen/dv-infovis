@@ -8,7 +8,7 @@ function DroughtAreaPlot() {
         let width = innerWidth - margin.left - margin.right;
         let height = innerHeight - margin.top - margin.bottom;
 
-        self.graph = d3.select('#graphDroughtArea');
+        self.graph = d3.select('#graphDroughtArea').append("svg");
         self.x = d3.scaleTime().range([0, width]);
         self.y = d3.scaleLinear().range([height, 0]).domain([0, 100]);
 
@@ -89,7 +89,8 @@ function DroughtAreaPlot() {
                 return self.colors(i);
             });
     }
+
     return {
         initPlot, plotDrought
-    }
+    };
 }

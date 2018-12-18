@@ -7,14 +7,14 @@ function randomTest() {
 function FireTimePlot() {
 	let self = this;
 
-	function initPlot() {
+    function initPlot() {
         let margin = {top: 10, right: 100, bottom: 50, left: 50};
         innerHeight = $( ".plot-container" ).innerHeight();
         innerWidth = $( ".plot-container" ).innerWidth();
 		let width = innerWidth - margin.left - margin.right;
 		console.log("Firetime width: " + width);
 		self.height = innerHeight - margin.top - margin.bottom;
-		self.graph = d3.select('#graphFiresTimePlot');
+		self.graph = d3.select('#graphFiresTimePlot').append("svg");
 
 		// Range from startdate to enddate
 		self.x = d3.scaleTime().range([0, width]);
@@ -113,9 +113,7 @@ function FireTimePlot() {
 
         // console.log("Berend: Plot complete")
 	}
-
 	return {
 		initPlot, plot
-	}
-
+	};
 }

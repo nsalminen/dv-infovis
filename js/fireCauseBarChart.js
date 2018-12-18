@@ -18,45 +18,35 @@ function FireCauseBarChart() {
     ];
 
     function initPlot() {
-        let margin = {top: 10, right: 110, bottom: 50, left: 50};
-        innerHeight = $( ".plot-container" ).innerHeight();
-        innerWidth = $( ".plot-container" ).innerWidth();
-        self.width = innerWidth - margin.left - margin.right;
-        self.height = innerHeight - margin.top - margin.bottom;
-        self.graph = d3.select('#graphFiresCauseBarChart').append("svg").attr("class", "plot");
-        self.x = d3.scaleBand().range([0, self.width]).padding(0.1).domain(plotData.map(x=>x.cause));
-        self.y = d3.scaleLinear().range([self.height, 0]).domain([0,10]);
+        self.x = d3.scaleBand().padding(0.1).domain(plotData.map(x=>x.cause));
+        self.y = d3.scaleLinear().domain([0,10]);
 
-        self.plot = self.graph.attr("width", self.width + margin.left + margin.right)
-            .attr("height", self.height + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform",
-                "translate(" + margin.left + "," + margin.top + ")");
-        // add the x Axis
-        self.xAxis = self.plot.append("g")
-            .attr("transform", "translate(0," + self.height + ")");
-        self.xAxis.call(d3.axisBottom(self.x));
+        initBasisPlot(self, '#graphFiresCauseBarChart', 'Causes', 'Number of fires');
+        setPlotSizeValues(self);
+        redraw();
+    }
 
-        self.yAxis = self.plot.append("g");
-        self.yAxis.call(d3.axisLeft(self.y));
-
-
-        //labels
-        self.graph.append("text")
-            .attr("transform",
-                "translate(" + ((self.width/2) +  margin.left) + " ," +
-                (self.height + margin.top + 40) + ")")
-            .style("text-anchor", "middle")
-            .text("Causes");
-
-        self.graph.append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("y", 0 )
-            .attr("x",0 - (self.height / 2))
-            .attr("dy", "1em")
-            .style("text-anchor", "middle")
-            .text("Number of fires");
-
+    function redraw(duration) {
+        if (duration === undefined)
+            duration = 0;
+        setPlotSizeValues(self);
+        if (plotData !== undefined) {
+            self.plot.selectAll("rect")
+                .data(plotData)
+                .transition()
+                .duration(duration)
+                .attr("fill", "blue")
+                .attr("x", function (d) {
+                    return self.x(d.cause)
+                })
+                .attr("width", self.x.bandwidth())
+                .attr("y", function (d) {
+                    return self.y(d.count);
+                })
+                .attr("height", function (d) {
+                    return self.height - self.y(d.count)
+                });
+        }
     }
 
     function plot(rawPlotData) {
@@ -80,28 +70,13 @@ function FireCauseBarChart() {
         self.y = self.y.domain([0,d3.max(plotData, d=>d.count)]);
         self.plot.selectAll('rect').data(plotData).exit().remove();
         self.plot.selectAll('rect').data(plotData).enter().append("rect");
-        self.plot.selectAll("rect")
-            .data(plotData)
-            .transition()
-            .duration(500)
-            .attr("fill", "blue")
-            .attr("x", function (d) {
-                let x = self.x(d.cause);
-                return self.x(d.cause)
-            })
-            .attr("width", self.x.bandwidth())
-            .attr("y", function(d) { return self.y(d.count); })
-            .attr("height", function(d) {
-                let y  = self.height- self.y(d.count)
-                return self.height- self.y(d.count)});
 
 
-        // add the x and y Axis
-        self.yAxis.transition().call(d3.axisLeft(self.y));
-        self.xAxis.transition().call(d3.axisBottom(self.x));
+
+        redraw(500);
     }
 
     return {
-        initPlot, plot
+        initPlot, plot, redraw
     }
 }

@@ -275,28 +275,26 @@ function initTimeline(){
         from: dateToTS(uiState.from),
         to: dateToTS(uiState.to),
         prettify: tsToDate,
-        onFinish: function (data) {
-            self.uiState.from = new Date(data.from);
-            self.uiState.to = new Date(data.to);
+        onChange: function (data) {
+            uiState.from = new Date(data.from);
+            uiState.to = new Date(data.to);
             clearTimeout(rangeChangeDelay);
-            rangeChangeDelay = setTimeout(updatePlots, 500);
-        }
+            rangeChangeDelay = setTimeout(function () {updatePlots(); startAnimate()}, 500);
+        },
     });
     initUI();
 }
 
 function initUI() {
     d3.selectAll(".menu-item a").on("click", function(e, d) {
+        d3.select(".plot-container .empty").style("display", "none");
         let id = d3.select(this).attr("data-graph");
-        console.log("click", id)
 
         // Hide all other plot graphs
-        d3.selectAll(".panel .empty, .panel .graph").style("display", "none");
+        d3.selectAll(".plot-container .graph").style("display", "none");
 
-        let selectedElement = d3.select(d3.select("#"+id).node())
-        console.log(selectedElement, selectedElement)
-        selectedElement.style("display", "block")
-
+        selectedPlot = d3.select(d3.select("#"+id).node())
+        selectedPlot.style("display", "block")
         // Set currently selected plot to visible
         // el.attr("data-graph")
     });
@@ -323,7 +321,7 @@ function startAnimate() {
     }
     $(".timeline-control-container .start-button").text("Restart");
     clearInterval(animationInterval);
-    let date = new Date(tlRangeFrom.getTime());
+    let date = new Date(uiState.from);
     animationInterval = window.setInterval(function() {
         if (!uiState.animationPaused){
             console.log(date.toDateString());
@@ -333,8 +331,8 @@ function startAnimate() {
             let start = Date.now();
             let colorPromise = colorDrought(date);
             date.setMonth(date.getMonth() + 1);
-            if (date >= tlRangeTo) {
-                date = new Date(tlRangeFrom.getTime());
+            if (date >= uiState.to) {
+                date = new Date(uiState.from.getTime());
             }
             colorPromise.then(result => {
                 let end = Date.now();

@@ -43,6 +43,10 @@ body {
     overflow: hidden !important;
 }
 
+.plot-container .empty {
+    background-color: white;
+}
+
 .map-header {
     padding-bottom: 0 !important;
 }

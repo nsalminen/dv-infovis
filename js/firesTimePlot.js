@@ -8,7 +8,6 @@ function FireTimePlot() {
         setPlotSizeValues(self);
 
 
-
 		// @TODO: Update
         self.histogram = d3.histogram()
             .value(function(d) { return d; })

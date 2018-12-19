@@ -7,7 +7,7 @@ function FireDroughtPlot() {
         initBasisPlot(self, '#graphFireDroughtHist', 'Drought severity', 'Number of fires');
         setPlotSizeValues(self);
 
-
+        //create histogram that is used to put the data in bins
         self.histogram = d3.histogram()
             .value(function(d) { return d; })
             .domain(self.x.domain())
@@ -20,6 +20,7 @@ function FireDroughtPlot() {
         if (duration === undefined)
             duration = 0;
         setPlotSizeValues(self);
+        // draw data
         if(self.bins!==undefined) {
             let gapSize = 2;
             let binWidth = self.x(self.bins[0].x1) - self.x(self.bins[0].x0) - 2 * gapSize - 1;
@@ -39,6 +40,7 @@ function FireDroughtPlot() {
     }
 
     function plot(plotData) {
+        //place data in bins
         self.bins = self.histogram(plotData);
         self.y = self.y.domain([0,d3.max(self.bins, b=>b.length)]);
 

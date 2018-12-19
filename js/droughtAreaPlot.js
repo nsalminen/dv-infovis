@@ -20,7 +20,7 @@ function DroughtAreaPlot() {
                 return self.y(d[1]);
             });
 
-        self.keys = ["None", "D0", "D1", "D2", "D3", "D4"]
+        self.keys = ["None", "D0", "D1", "D2", "D3", "D4"];
         self.colors = d3.scaleOrdinal(d3.schemeCategory10).domain(self.keys).range(
         [
         '#4daf4a',
@@ -33,7 +33,7 @@ function DroughtAreaPlot() {
 
         self.stack = d3.stack().keys(self.keys)
             .order(d3.stackOrderReverse)
-            .offset(d3.stackOffsetNone)
+            .offset(d3.stackOffsetNone);
 
         self.yAxis
             .call(d3.axisLeft(self.y)

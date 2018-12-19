@@ -21,7 +21,7 @@ function setPlotSizeValues(plot) {
 
     plot.xLabel.attr("transform",
         "translate(" + ((plot.width/2) +  plot.margin.left)+ " ," +
-        (plot.height + plot.margin.top + 40) + ")")
+        (plot.height + plot.margin.top + 40) + ")");
 
     plot.yLabel.attr("x",0 - (plot.height / 2))
 }

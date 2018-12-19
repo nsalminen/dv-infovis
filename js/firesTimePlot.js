@@ -1,9 +1,3 @@
-
-function randomTest() {
-	console.log("THIS IS FUCKING WEIRD");
-	return 'a';
-}
-
 function FireTimePlot() {
 	let self = this;
 
@@ -29,7 +23,7 @@ function FireTimePlot() {
 				.attr("stroke-width", 1.5);
         self.line = d3.line()
         			.x(function(d) { return self.x(d.date) })
-        			.y(function(d) { return self.y(d.count)})
+        			.y(function(d) { return self.y(d.count)});
       
         redraw();
 
@@ -49,15 +43,15 @@ function FireTimePlot() {
         // Get entries per day (@TODO: filter out fires with missing end days if this plot is too chaotic?)
         // @TODO: perhaps make into a promise instead?
 
-        self.entries = []
+        self.entries = [];
 
-		var maxNumberOfFires = 0;
+		let maxNumberOfFires = 0;
 
-        var searchData = plotData.filter(function (e) {
+        let searchData = plotData.filter(function (e) {
             return e['CONT_DATE'] !== '';
         });
 
-        for (var date = startDate; date <= endDate; date = addDays(date, 1)) {
+        for (let date = startDate; date <= endDate; date = addDays(date, 1)) {
         	let numberOfFires = getSliceWithinRange(date, date, searchData).length;
         	maxNumberOfFires = Math.max(numberOfFires, maxNumberOfFires);
 

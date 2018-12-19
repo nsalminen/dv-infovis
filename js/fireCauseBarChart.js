@@ -52,7 +52,7 @@ function FireCauseBarChart() {
     function plot(rawPlotData) {
         plotData.forEach(x => x.count = 0);
         for (let i = 0; i <plotData.length; i++) {
-            let index = plotData[i].code
+            let index = plotData[i].code;
             if (rawPlotData[index] !== undefined) {
                 plotData[i].count += rawPlotData[index];
                 rawPlotData[index] = 0;

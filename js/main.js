@@ -42,7 +42,7 @@ window.uiState = {
     selectedPlot: ""
 };
 
-window.stateFipsCodes = {'01': 'AL', '02': 'AK', '04': 'AZ', '05': 'AR', '06': 'CA', '08': 'CO', '09': 'CT', '10': 'DE', '11': 'DC', '12': 'FL', '13': 'GA', '15': 'HI', '16': 'ID', '17': 'IL', '18': 'IN', '19': 'IA', '20': 'KS', '21': 'KY', '22': 'LA', '23': 'ME', '24': 'MD', '25': 'MA', '26': 'MI', '27': 'MN', '28': 'MS', '29': 'MO', '30': 'MT', '31': 'NE', '32': 'NV', '33': 'NH', '34': 'NJ', '35': 'NM', '36': 'NY', '37': 'NC', '38': 'ND', '39': 'OH', '40': 'OK', '41': 'OR', '42': 'PA', '44': 'RI', '45': 'SC', '46': 'SD', '47': 'TN', '48': 'TX', '49': 'UT', '50': 'VT', '51': 'VA', '53': 'WA', '54': 'WV', '55': 'WI', '56': 'WY', '60': 'AS', '64': 'FM', '66': 'GU', '68': 'MH', '69': 'MP', '70': 'PW', '72': 'PR', '74': 'UM', '78': 'VI'}
+window.stateFipsCodes = {'01': 'AL', '02': 'AK', '04': 'AZ', '05': 'AR', '06': 'CA', '08': 'CO', '09': 'CT', '10': 'DE', '11': 'DC', '12': 'FL', '13': 'GA', '15': 'HI', '16': 'ID', '17': 'IL', '18': 'IN', '19': 'IA', '20': 'KS', '21': 'KY', '22': 'LA', '23': 'ME', '24': 'MD', '25': 'MA', '26': 'MI', '27': 'MN', '28': 'MS', '29': 'MO', '30': 'MT', '31': 'NE', '32': 'NV', '33': 'NH', '34': 'NJ', '35': 'NM', '36': 'NY', '37': 'NC', '38': 'ND', '39': 'OH', '40': 'OK', '41': 'OR', '42': 'PA', '44': 'RI', '45': 'SC', '46': 'SD', '47': 'TN', '48': 'TX', '49': 'UT', '50': 'VT', '51': 'VA', '53': 'WA', '54': 'WV', '55': 'WI', '56': 'WY', '60': 'AS', '64': 'FM', '66': 'GU', '68': 'MH', '69': 'MP', '70': 'PW', '72': 'PR', '74': 'UM', '78': 'VI'};
 
 initTimeline();
 
@@ -125,7 +125,7 @@ async function loadFires(year, state) {
     }
     if (!(state in this.fires[year])) {
         this.fires[year][state] = new Promise(function (resolve, reject){
-            let path = "data/fires/" + year + "/fires_" + year + "_" + state + ".csv"
+            let path = "data/fires/" + year + "/fires_" + year + "_" + state + ".csv";
             d3.csv(path, function(error, request) {
                 if(error) {
                     console.log(error);
@@ -146,7 +146,7 @@ async function plotFires(startDate, endDate, state, filterSet) {
     }
 
     return new Promise((resolve, reject) => {
-        let fireYear = date.getFullYear()
+        let fireYear = date.getFullYear();
         
         loadFires(fireYear, state).then(function (firedata) {
             // Comb through csv to figure out what data to keep
@@ -171,9 +171,9 @@ async function plotFires(startDate, endDate, state, filterSet) {
                     }
                     return 'red';
                 })
-                .attr("class", state)
+                .attr("class", state);
             svg.selectAll("circle."+state)
-                .data(slice).exit().remove()
+                .data(slice).exit().remove();
 
             resolve();
         });
@@ -235,9 +235,9 @@ function plotFireDroughtHist(fireData, state, from, to) {
     //TODO get fire dates and counties
     let yearStart = from.getFullYear();
     let yearEnd = to.getFullYear();
-    let years = Array.apply(null, Array(yearEnd - yearStart+ 1)).map(function (x, i) { return i + yearStart; })
+    let years = Array.apply(null, Array(yearEnd - yearStart+ 1)).map(function (x, i) { return i + yearStart; });
 
-    let compactFireData = {}
+    let compactFireData = {};
     for (let index = 0; index < fireData.length; ++index) {
         let fire = fireData[index];
         let dateString = fire["DISCOVERY_DATE"];
@@ -332,19 +332,13 @@ function getDrougtData(startDate, endDate, steps, state) {
 
 
 function finishInit(){
-    updateInitText("Done")
+    updateInitText("Done");
     $('.fade').fadeOut(300)
 }
 
 function updateInitText(text) {
     $('#init-progress-text').fadeOut(300, function() {
         $(this).text(text + "...").fadeIn(400);
-    });
-}
-
-function updateMapSubtitle(date) {
-    $('#map-subtitle').fadeOut(200, function() {
-        $(this).text(date.toLocaleString('en-us', { month: "long" }) + ' ' + date.getFullYear()).fadeIn(300);
     });
 }
 
@@ -367,18 +361,18 @@ function updatePlots() {
     let to = uiState.to;
     let state = uiState.currentState;
 
-    getDrougtData(from, to,100,state)
+    getDrougtData(from, to,100,state);
     // plotFireDroughtHist(state);
     let dt = Date.now();
 
     let yearStart = from.getFullYear();
     let yearEnd = to.getFullYear();
-    let years = Array.apply(null, Array(yearEnd - yearStart+ 1)).map(function (x, i) { return i + yearStart; })
+    let years = Array.apply(null, Array(yearEnd - yearStart+ 1)).map(function (x, i) { return i + yearStart; });
 
     Promise.all(years.map(s =>    loadFires(s, state))).then(dataPerYear => {
         let data = dataPerYear.flat();
         let dataslice = getSliceWithinRange(from, to, data);
-        console.log("resulting data", dataslice, from, to, state)
+        console.log("resulting data", dataslice, from, to, state);
         fireTimePlot.plot(from, to, dataslice);
 
         plotFireDroughtHist(dataslice, state, from, to);
@@ -542,7 +536,7 @@ async function plotStates() {
                 .attr("d", path(topojson.mesh(us, us.objects.states, function (a, b) {
                     return a !== b;
                 })));
-            console.log("state loaded")
+            console.log("state loaded");
             drawGradient();
             resolve();
         });
@@ -594,7 +588,7 @@ function drawGradient() {
     legend.append("g")
         .attr("class", "z axis")
         .attr("transform", "translate(0," + height + ")")
-        .call(zAxis)
+        .call(zAxis);
 
     legend.selectAll("text").filter(t => t == "No drought").style("text-anchor", "start");
     legend.selectAll("text").filter(t => t == "Severe drought").style("text-anchor", "end");
@@ -609,7 +603,6 @@ function plotCounties() {
             reject(error);
 
         this.counties = topojson.feature(us, us.objects.counties).features;
-        this.countiesMap = new Map(this.counties.map(i => [parseInt(i.id), i]));
         svg.append("g")
             .attr("class", "counties")
             .selectAll("path")
@@ -624,7 +617,7 @@ function plotCounties() {
                 return a !== b;
             })));
 
-        console.log("counties loaded")
+        console.log("counties loaded");
         resolve();
     });
     });
@@ -659,7 +652,9 @@ async function loadDrought(year, state) {
 }
 
 async function loadMTBS(){
-    if (window.mtbs != null) { return };
+    if (window.mtbs != null) {
+        return
+    }
     updateInitText("Loading burn severity data");
     return new Promise((resolve, reject) => {
         d3.json("data/mtbs_perims_DD_2000_2015.json", function (error, fireArea) {

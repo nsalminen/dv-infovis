@@ -326,7 +326,13 @@ function updatePlots() {
     getDrougtData(from, to,100,state)
     // plotFireDroughtHist(state);
     let dt = Date.now();
-    loadFires(from.getFullYear(), state).then(data => {
+
+    let yearStart = from.getFullYear();
+    let yearEnd = to.getFullYear();
+    let years = Array.apply(null, Array(yearEnd - yearStart+ 1)).map(function (x, i) { return i + yearStart; })
+
+    Promise.all(years.map(s =>    loadFires(s, state))).then(dataPerYear => {
+        let data = dataPerYear.flat();
         let dataslice = getSliceWithinRange(from, to, data);
         console.log("resulting data", dataslice, from, to, state)
         fireTimePlot.plot(from, to, dataslice);

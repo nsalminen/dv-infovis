@@ -209,11 +209,17 @@ async function plotFires(startDate, endDate, filterSet, state) {
         return Promise.all(this.states.map(s => plotFires(startDate, endDate, filterSet, s.Code)));
     }
 
-    return new Promise((resolve, reject) => {
-        let fireYear = startDate.getFullYear();
+    // get the years that should be loaded
+    let yearStart = startDate.getFullYear();
+    let yearEnd = endDate.getFullYear();
+    let years = Array.apply(null, Array(yearEnd - yearStart+ 1)).map(function (x, i) { return i + yearStart; });
+
+    // load the fire data
+    return Promise.all(years.map(y =>  loadFires(y, state).then(function (firedataPromises) {
+
+        let firedata = firedataPromises.flat();
         
-        // @TODO: If multiple years, fetch all and combine.
-        loadFires(fireYear, state).then(function (firedata) {
+
             // Comb through csv to figure out what data to keep
             let newFireData = firedata.filter(function (e) {
                 return filterSet.has(parseFloat(e['STAT_CAUSE_CODE']));
@@ -233,8 +239,7 @@ async function plotFires(startDate, endDate, filterSet, state) {
                 .data(slice).exit().remove();
 
             resolve();
-        });
-    });
+    })));
 }
 
 // async function plotFires(date, state) {

@@ -74,11 +74,11 @@ $(window).on('resize', function(){
 function initModals() {
     $('.modal-button').hide();
     $('.modal-button').click(function() {
-        $('#info-' + uiState.selectedPlot).addClass("active");
+        $('.info-' + uiState.selectedPlot).addClass("active");
     });
 
     $('.modal .btn-clear').click(function() {
-        $('#info-' + uiState.selectedPlot).removeClass("active");
+        $('.info-' + uiState.selectedPlot).removeClass("active");
     });
 
     $('#select-types .btn-primary, #select-types .btn-clear').click(function() {
@@ -435,7 +435,7 @@ function initUI() {
         d3.select(".plot-container .empty").style("display", "none");
         uiState.selectedPlot = d3.select(this).attr("data-graph");
         console.log('info-' + uiState.selectedPlot);
-        if ($('#info-' + uiState.selectedPlot).length) {
+        if ($('.info-' + uiState.selectedPlot).length) {
             $('.modal-button').show();
         } else {
             $('.modal-button').hide();

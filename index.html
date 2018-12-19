@@ -87,7 +87,7 @@
             </div>
         </div>
     </div>
-    <div class="modal" id="info-graphDroughtArea">
+    <div class="modal info-graphDroughtArea info-graphDroughtArea info-graphFireDroughtHist" >
         <a href="#close" class="modal-overlay" aria-label="Close"></a>
         <div class="modal-container">
             <div class="modal-header">
@@ -110,6 +110,9 @@
                         <li>D4: exceptional drought</li>
                     </ul>
 
+                    The drought severity is computed by combining these categories. It is computed as follows: <br />
+                    severity = 0.2 * D0 + 0.4 * D1 + 0.6 * D2 + 0.8 * D3 + 1.0 * D4<br />
+                    D0 is the percentage of area that has as drought label D0. The resulting value is a number between 0 and 1. Where 1 is the highest drought intensity.
                 </div>
             </div>
             <div class="modal-footer">

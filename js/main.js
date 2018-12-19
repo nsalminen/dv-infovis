@@ -416,7 +416,7 @@ function initTimeline(){
         type: "double",
         grid: true,
         min: dateToTS(new Date(2000, 0, 1)),
-        max: dateToTS(new Date(2015, 11, 31)),
+        max: dateToTS(new Date(2009, 11, 31)),
         from: dateToTS(uiState.from),
         to: dateToTS(uiState.to),
         prettify: tsToDate,

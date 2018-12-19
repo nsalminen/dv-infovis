@@ -88,6 +88,10 @@ body {
     padding-bottom: 0;
 }
 
+.map-controls .btn-sm {
+    margin-top: .2rem;
+}
+
 .irs-from {
     background-color: #F4512C !important;
 }

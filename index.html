@@ -14,6 +14,80 @@
 <body>
 
 <div class="container bg-gray">
+    <div class="modal" id="select-types">
+        <a href="#close" class="modal-overlay" aria-label="Close"></a>
+        <div class="modal-container">
+            <div class="modal-header">
+                <a href="#close" class="btn btn-clear float-right" aria-label="Close"></a>
+                <div class="modal-title h5">Select fire cause types</div>
+            </div>
+            <div class="modal-body">
+                <div class="content">
+                    <div class="columns">
+                        <div class="column col-6">
+                            <label class="form-checkbox">
+                                <input id="miscellaneous" type="checkbox">
+                                <i class="form-icon"></i> Miscellaneous
+                            </label>
+                            <label class="form-checkbox">
+                                <input id="lightning" type="checkbox">
+                                <i class="form-icon"></i> Lightning
+                            </label>
+                            <label class="form-checkbox">
+                                <input id="debris-burning" type="checkbox">
+                                <i class="form-icon"></i> Debris Burning
+                            </label>
+                            <label class="form-checkbox">
+                                <input id="campfire" type="checkbox">
+                                <i class="form-icon"></i> Campfire
+                            </label>
+                            <label class="form-checkbox">
+                                <input id="equipment-use" type="checkbox">
+                                <i class="form-icon"></i> Equipment Use
+                            </label>
+                            <label class="form-checkbox">
+                                <input id="arson" type="checkbox">
+                                <i class="form-icon"></i> Arson
+                            </label>
+                            <label class="form-checkbox">
+                                <input id="children" type="checkbox">
+                                <i class="form-icon"></i> Children
+                            </label>
+                        </div>
+                        <div class="column col-6">
+                            <label class="form-checkbox">
+                                <input id="railroad" type="checkbox">
+                                <i class="form-icon"></i> Railroad
+                            </label>
+                            <label class="form-checkbox">
+                                <input id="smoking" type="checkbox">
+                                <i class="form-icon"></i> Smoking
+                            </label>
+                            <label class="form-checkbox">
+                                <input id="powerline" type="checkbox">
+                                <i class="form-icon"></i> Powerline
+                            </label>
+                            <label class="form-checkbox">
+                                <input id="structure" type="checkbox">
+                                <i class="form-icon"></i> Structure
+                            </label>
+                            <label class="form-checkbox">
+                                <input id="fireworks" type="checkbox">
+                                <i class="form-icon"></i> Fireworks
+                            </label>
+                            <label class="form-checkbox">
+                                <input id="missing" type="checkbox">
+                                <i class="form-icon"></i> Missing/Undefined
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
     <div class="modal" id="info-graphDroughtArea">
         <a href="#close" class="modal-overlay" aria-label="Close"></a>
         <div class="modal-container">
@@ -163,6 +237,9 @@
                                         <input id="fire-cum-switch" type="checkbox">
                                         <i class="form-icon tooltip" data-tooltip="Show without animation"></i>Show <b>cumulatively</b>
                                     </label>
+                                </li>
+                                <li class="menu-item">
+                                    <button id="open-cause-modal" class="btn btn-sm">Select fire causes</button>
                                 </li>
                             </ul>
                         </div>

@@ -74,18 +74,23 @@ $(window).on('resize', function(){
 function initModals() {
     $('.modal-button').hide();
     $('.modal-button').click(function() {
-        console.log('info-' + uiState.selectedPlot);
         $('#info-' + uiState.selectedPlot).addClass("active");
     });
 
     $('.modal .btn-clear').click(function() {
-        console.log('info-' + uiState.selectedPlot);
         $('#info-' + uiState.selectedPlot).removeClass("active");
+    });
+
+    $('#select-types .btn-primary, #select-types .btn-clear').click(function() {
+        $('#select-types').removeClass("active");
+    });
+
+    $('#open-cause-modal').click(function() {
+        $('#select-types').addClass("active");
     });
 }
 
 function initMapControls() {
-
     $('input:checkbox').change(
         function(){
                 switch ($(this).attr('id')) {
@@ -146,7 +151,7 @@ async function plotFires(startDate, endDate, state, filterSet) {
         loadFires(fireYear, state).then(function (firedata) {
             // Comb through csv to figure out what data to keep
             let newFireData = firedata.filter(function (e) {
-                return !(e["FIRE_SIZE_CLASS"] == "B") && filterSet.has(e['STAT_CAUSE_CODE']);
+                return !(e["FIRE_SIZE_CLASS"] === "B") && filterSet.has(e['STAT_CAUSE_CODE']);
             });
             let slice = getSliceWithinRange(startDate, endDate, newFireData);
 
@@ -158,10 +163,10 @@ async function plotFires(startDate, endDate, state, filterSet) {
                 .attr("cy", function (d) { return projection([parseFloat(d['LONGITUDE']), parseFloat(d['LATITUDE'])])[1]; })
                 .attr("r", "2px")
                 .attr("fill", function(d) {
-                    if (d['FIRE_SIZE_CLASS'] == 'B') {
+                    if (d['FIRE_SIZE_CLASS'] === 'B') {
                         return 'blue';
                     }
-                    if (d['FIRE_SIZE_CLASS'] == 'C') {
+                    if (d['FIRE_SIZE_CLASS'] === 'C') {
                         return 'yellow';
                     }
                     return 'red';

@@ -60,6 +60,14 @@ body {
     padding: 0 40%;
 }
 
+.map-controls .menu {
+    box-shadow: none;
+}
+
+.map-controls .panel-header {
+    padding-bottom: 0;
+}
+
 .irs-from {
     background-color: #F4512C !important;
 }

@@ -441,7 +441,7 @@ function initTimeline(){
             uiState.from = new Date(data.from);
             uiState.to = new Date(data.to);
             clearTimeout(rangeChangeDelay);
-            rangeChangeDelay = setTimeout(function () {reloadPlots(); startAnimate()}, 500);
+            rangeChangeDelay = setTimeout(function () { updatePlots(); startAnimate()}, 500);
         },
     });
     initUI();

@@ -471,7 +471,6 @@ function pauseAnimate(){
         $(".timeline-control-container .pause-button").addClass("active");
         $(".timeline-control-container .pause-button").text("Paused");
     }
-    clearDrought();
 }
 
 function startAnimate() {

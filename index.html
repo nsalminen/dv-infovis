@@ -6,8 +6,7 @@
     <link rel="stylesheet" type="text/css" href="css/main.css">
     <script
             src="js/jquery-3.3.1.min.js"
-            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-            crossorigin="anonymous"></script>
+></script>
     <script src="js/ion.rangeSlider.min.js"></script>
     <meta charset="utf-8"/>
 </head>
@@ -97,9 +96,11 @@
             </div>
             <div class="modal-body">
                 <div class="content">
-                    For each county the land is divided in five categories and each category gets assigned the percentage of land that follows in this category.
-                    Below is a table with the different categories.
-                    The combined drought severity is calculated as follows: <var>0.2 * D0 + 0.4 * D1 + 0.6 * D2 + 0.8 * D3 + 1.0 * D4</var>.
+                    The United States Drought Monitor classifies land into six categories. The categories are bases on the drought intensity.
+                    D4 is the category with the most intense drought and D0 the category with the least intense drought. If there is no drought
+                    than the label None is assigned. More information about the drought classification can be found on the
+                    <a href="https://droughtmonitor.unl.edu/AboutUSDM/AbouttheData/DroughtClassification.aspx" target="_blank">States Drought Monitor website</a>.<br a/>
+                    Here we list the six categories.
                     <ul>
                         <li>None: no drought</li>
                         <li>D0: abnormally dry</li>
@@ -112,7 +113,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                Source: ...
+               // Source: ...
             </div>
         </div>
     </div>

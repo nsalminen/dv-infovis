@@ -428,6 +428,7 @@ function pauseAnimate(){
         $(".timeline-control-container .pause-button").addClass("active");
         $(".timeline-control-container .pause-button").text("Paused");
     }
+    clearDrought();
 }
 
 function startAnimate() {
@@ -708,6 +709,12 @@ function colorElement(d) {
     if (element !== null) {
         element.style.fill = calculateColor(d);
     }
+}
+
+function clearDrought() {
+    //TODO fix
+    let test = d3.selectAll(".counties").selectAll("path");
+    test.attr("style", "fill: light-gray");
 }
 
 async function colorDrought(date, state) {

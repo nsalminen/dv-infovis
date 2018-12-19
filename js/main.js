@@ -220,6 +220,7 @@ function getSliceWithinRange(startDate, endDate, firedata)
 
 function plotFireCauseBar(fireData) {
     let causeCount = [];
+    //count the occurrence for each cause
     for (let index = 0; index < fireData.length; ++index) {
         let fire = fireData[index];
         let code = parseInt(fire["STAT_CAUSE_CODE"]);
@@ -232,11 +233,12 @@ function plotFireCauseBar(fireData) {
 }
 
 function plotFireDroughtHist(fireData, state, from, to) {
-    //TODO get fire dates and counties
+    // create array that contains all the years that must be loaded
     let yearStart = from.getFullYear();
     let yearEnd = to.getFullYear();
     let years = Array.apply(null, Array(yearEnd - yearStart+ 1)).map(function (x, i) { return i + yearStart; });
 
+    //get the number of fires per state and county
     let compactFireData = {};
     for (let index = 0; index < fireData.length; ++index) {
         let fire = fireData[index];
@@ -248,6 +250,8 @@ function plotFireDroughtHist(fireData, state, from, to) {
             compactFireData[dateString][county] = 0;
         compactFireData[dateString][county] += 1;
     }
+
+    //get all the drought data
     Promise.all(years.map(x=>loadDrought(x, state))).then(droughtData => {
         let plotData = [];
         for (let key in compactFireData) {
@@ -262,6 +266,7 @@ function plotFireDroughtHist(fireData, state, from, to) {
                 start++;
                 droughtDate = Date.parse(d.ValidStart);
                 let fips = parseInt(d.FIPS);
+                //check if there was a fire for this county on this date
                 if (fips in compactFireData[key]) {
                     let number = compactFireData[key][fips];
                     compactFireData[key][fips] = 0;
@@ -270,7 +275,9 @@ function plotFireDroughtHist(fireData, state, from, to) {
                     let D2 = parseFloat(d["D2"]);
                     let D3 = parseFloat(d["D3"]);
                     let D4 = parseFloat(d["D4"]);
+                    // compute the drought severity
                     let drought = (D0 * 0.2 + D1 * 0.4 + D2 * 0.6 + D3 * 0.8 + D4 * 1)/100;
+                    // for every fire push the computed drought level
                     for (let i = 0; i < number; i++) {
                         plotData.push(drought)
                     }
@@ -282,10 +289,16 @@ function plotFireDroughtHist(fireData, state, from, to) {
 }
 
 
-
-function getDrougtData(startDate, endDate, steps, state) {
+/**
+ * Load the d
+ * @param startDate
+ * @param endDate
+ * @param steps
+ * @param state
+ */
+function updateDroughtAreaPlot(startDate, endDate, steps, state) {
     let dataPromise = new Promise(function (resolve, reject) {
-        //  console.log("Start reading " + year + " " + state);
+        //  get the date for the entire state (other data is per county)
         d3.csv("data/drought/state/" + state + ".csv", function (error, data) {
             if (error) {
                 console.log(error);
@@ -301,9 +314,11 @@ function getDrougtData(startDate, endDate, steps, state) {
         });
     });
 
+    // get array of the dates for which we want to get the drought.
     let diff = endDate - startDate;
     let dayStep = Math.max(Math.floor(diff / (1000 * 60 * 60 * 24 * steps)), 1);
     let dateRange = d3.timeDays(startDate, endDate, dayStep);
+
     dataPromise.then(data => {
         let plotData = dateRange.map(date => {
             let record = data.find(d => {
@@ -357,19 +372,18 @@ function plotUS() {
 }
 
 function updatePlots() {
-    var self = this;
     let from = uiState.from;
     let to = uiState.to;
     let state = uiState.currentState;
 
-    getDrougtData(from, to,100,state);
-    // plotFireDroughtHist(state);
-    let dt = Date.now();
+    updateDroughtAreaPlot(from, to,100,state);
 
+    // get the years that should be loaded
     let yearStart = from.getFullYear();
     let yearEnd = to.getFullYear();
     let years = Array.apply(null, Array(yearEnd - yearStart+ 1)).map(function (x, i) { return i + yearStart; });
 
+    // load the fire data
     Promise.all(years.map(s =>    loadFires(s, state))).then(dataPerYear => {
         let data = dataPerYear.flat();
         let dataslice = getSliceWithinRange(from, to, data);
@@ -382,6 +396,9 @@ function updatePlots() {
     });
 }
 
+/**
+ * Redraw the plots (after resize)
+ */
 function reloadPlots() {
     droughtAreaPlot.redraw();
     fireDroughtPlot.redraw();
@@ -513,7 +530,7 @@ async function plotStates() {
     return new Promise((resolve, reject) => {
         d3.json("https://d3js.org/us-10m.v1.json", function (error, us) {
             if (error) reject(error);
-                  
+
             svg.append("g")
                 .attr("class", "states")
                 .selectAll("path")
@@ -525,7 +542,7 @@ async function plotStates() {
                 })
                 .on("click", function(d) {
                     let state = self.stateFipsCodes[d.id];
-                    if (state != undefined) {
+                    if (state !== undefined) {
                         self.uiState.currentState = state;
                         updatePlots();
                     }
@@ -543,6 +560,9 @@ async function plotStates() {
     });
 }
 
+/**
+ * Create the gradient bar in the map legens
+ */
 function drawGradient() {
     let width = 300;
     let height = 20;
@@ -580,6 +600,7 @@ function drawGradient() {
         .style("fill", "url(#map-gradient)");
 
 
+    // add 2 labels
     let z = d3.scaleOrdinal()
         .range([0, width])
         .domain(["No drought", "Severe drought"]);
@@ -639,13 +660,11 @@ async function loadDrought(year, state) {
     if (!(state in this.drought[year])) {
         // store the promise so that the data will be loaded once.
         this.drought[year][state] = new Promise(function (resolve, reject){
-          //  console.log("Start reading " + year + " " + state);
             d3.csv("data/drought/"+year+"/"+state+".csv", function(error, request) {
                 if(error) {
                     console.log(error);
                     reject(error);
                 } else {
-                 //   console.log("Loaded " + year + " " + state);
                     resolve(request);
                 }
             });
@@ -690,13 +709,20 @@ function plotMTBS(rangeStart) {
         .attr("d", pathProjection);
 }
 
+/**
+ * Add days to a date, return the new data.
+ */
 function addDays(date, days) {
     let result = new Date(date);
     result.setDate(result.getDate() + days);
     return result;
 }
 
-
+/**
+ * Calculte the color that belongs to the drought severity.
+ * @param drought
+ * @returns {*}
+ */
 function calculateColor(drought) {
     if (drought !== undefined) {
         let droughtFactor = parseFloat(drought.D0) * 0.2 + parseFloat(drought.D1) * 0.4 +  parseFloat(drought.D2) * 0.6
@@ -745,7 +771,11 @@ function searchStart(data, date) {
     return lower
 }
 
-
+/**
+ * Update the drought coloring of the map.
+ * @param drought
+ * @param date
+ */
 function setDroughtColor(drought, date) {
     let start = searchStart(drought, date);
     for(let index = start; index < drought.length; index++) {
@@ -756,6 +786,10 @@ function setDroughtColor(drought, date) {
     }
 }
 
+/**
+ * Get the element that has the same FIPS as d and give it the corresponding drought color.
+ * @param d
+ */
 function colorElement(d) {
     let fips = parseInt(d.FIPS);
     let element = document.getElementById(fips);
@@ -770,6 +804,12 @@ function clearDrought() {
     test.attr("style", "fill: light-gray");
 }
 
+/**
+ * Set the drought coloring in the map to the coloring that belongs to the given date.
+ * @param date
+ * @param state
+ * @returns {Promise<*>}
+ */
 async function colorDrought(date, state) {
     if (state === undefined) {
         return Promise.all(states.map(s => colorDrought(date, s.Code)));

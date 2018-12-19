@@ -1,3 +1,12 @@
+/**
+ * This file contains a few functions that are used by all the plots.
+ */
+
+/**
+ * After resizing we have to recompute all the positions based on the width and height.
+ * This function set the correct width and height to the plot and also updates the range and position of the axis.
+ * @param plot plot that should be updated.
+ */
 function setPlotSizeValues(plot) {
     plot.margin = {top: 10, right: 110, bottom: 50, left: 50};
 
@@ -26,6 +35,13 @@ function setPlotSizeValues(plot) {
     plot.yLabel.attr("x",0 - (plot.height / 2))
 }
 
+/**
+ * Append a svg element for the graph and add the axis.
+ * @param plot plot element
+ * @param key selector for the html
+ * @param xLabel label on the x-axis
+ * @param yLabel label on the y-axis
+ */
 function initBasisPlot(plot, key, xLabel, yLabel) {
     plot.graph = d3.select(key).append("svg").attr("class", "plot");
     plot.plot = plot.graph.append("g");

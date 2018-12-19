@@ -30,6 +30,7 @@ function FireCauseBarChart() {
         if (duration === undefined)
             duration = 0;
         setPlotSizeValues(self);
+        // draw data
         if (plotData !== undefined) {
             self.plot.selectAll("rect")
                 .data(plotData)
@@ -70,8 +71,6 @@ function FireCauseBarChart() {
         self.y = self.y.domain([0,d3.max(plotData, d=>d.count)]);
         self.plot.selectAll('rect').data(plotData).exit().remove();
         self.plot.selectAll('rect').data(plotData).enter().append("rect");
-
-
 
         redraw(500);
     }

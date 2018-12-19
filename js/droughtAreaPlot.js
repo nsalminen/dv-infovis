@@ -8,6 +8,7 @@ function DroughtAreaPlot() {
         initBasisPlot(self, '#graphDroughtArea', 'Date', 'Percentage of land');
         setPlotSizeValues(self);
 
+        // create an function that will create the area.
         self.area = d3.area()
             .curve(d3.curveMonotoneX)
             .x(function (d) {
@@ -47,10 +48,12 @@ function DroughtAreaPlot() {
             .order(d3.stackOrderReverse)
             .offset(d3.stackOffsetNone);
 
+        // set y-axis format as percentage
         self.yAxis
             .call(d3.axisLeft(self.y)
                 .tickFormat(d => d+'%'));
 
+        // create legend that explains the colors
         self.legend = self.graph.selectAll(".legend")
             .data(self.colors.domain()).enter()
             .append("g")
@@ -78,13 +81,16 @@ function DroughtAreaPlot() {
         if (duration === undefined)
             duration = 0;
         setPlotSizeValues(self);
+
+        // set y-axis format as percentage
         self.yAxis
             .call(d3.axisLeft(self.y)
                 .tickFormat(d => d+'%'));
+        //set position of the legend
         self.graph.selectAll(".legend").data(self.colors.domain()).attr("transform", "translate(" + (self.width +70 ) + "," + (self.margin.top+10)+ ")");
 
+        // draw data
         if ( self.series !== undefined) {
-
             self.plot.selectAll('.droughtArea').data(self.series)
                 .transition()
                 .duration(duration)

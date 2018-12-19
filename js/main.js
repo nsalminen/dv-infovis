@@ -1,3 +1,5 @@
+// ============ Global state ====================
+// Holds the svg on which the geographic map is drawn
 var svg = d3.select('.map-container').append("svg")
     .attr("width", '100%')
     .attr("height", '100%')
@@ -5,21 +7,12 @@ var svg = d3.select('.map-container').append("svg")
     .attr('preserveAspectRatio','xMinYMin')
     .append("g");
 
+// Used For interpolating between drought values
 let colorInterpolate = d3.scaleLinear()
     .domain([0, 1])
     .range(["#fff5eb", "#7f2704"]).interpolate(d3.interpolateHcl);
-/* colorInterpolate = d3.scaleLinear()
-    .domain([0, 1/5, 2/5, 3/5, 4/5, 1])
-    .range([
-        '#feedde',
-        '#fdd0a2',
-        '#fdae6b',
-        '#fd8d3c',
-        '#e6550d',
-        '#a63603'
-    ]) .interpolate(d3.interpolateHcl)*/
 
-
+// Projection for plotting geodata onto the map svg
 var projection = d3.geoAlbersUsa()
     .scale(1280) // Scale taken from projection of us-10m.v1.json
     .translate([960 / 2, 600 / 2]);
@@ -27,11 +20,14 @@ var pathProjection = d3.geoPath().projection(projection);
 var path = d3.geoPath();
 var animationInterval;
 
+// Data store: Drought dataset
 window.drought = {};
+// Data store: Fires dataset
 window.fires = {};
 window.mtbs = null;
 states = {};
 
+// Holds the variables required for rendering the current UI
 window.uiState = {
     from: new Date(2000, 0, 1),
     to: new Date(2001, 11, 31),
@@ -46,13 +42,14 @@ window.uiState = {
     firesCumulative: false,
     fireFilters: getFireFilters()
 };
-
 window.stateFipsCodes = {'01': 'AL', '02': 'AK', '04': 'AZ', '05': 'AR', '06': 'CA', '08': 'CO', '09': 'CT', '10': 'DE', '11': 'DC', '12': 'FL', '13': 'GA', '15': 'HI', '16': 'ID', '17': 'IL', '18': 'IN', '19': 'IA', '20': 'KS', '21': 'KY', '22': 'LA', '23': 'ME', '24': 'MD', '25': 'MA', '26': 'MI', '27': 'MN', '28': 'MS', '29': 'MO', '30': 'MT', '31': 'NE', '32': 'NV', '33': 'NH', '34': 'NJ', '35': 'NM', '36': 'NY', '37': 'NC', '38': 'ND', '39': 'OH', '40': 'OK', '41': 'OR', '42': 'PA', '44': 'RI', '45': 'SC', '46': 'SD', '47': 'TN', '48': 'TX', '49': 'UT', '50': 'VT', '51': 'VA', '53': 'WA', '54': 'WV', '55': 'WI', '56': 'WY', '60': 'AS', '64': 'FM', '66': 'GU', '68': 'MH', '69': 'MP', '70': 'PW', '72': 'PR', '74': 'UM', '78': 'VI'};
 
-initTimeline();
+// ============ Initialization ================
 
+initTimeline();
 plotUS();
 
+// Initialize all the available plots
 let droughtAreaPlot = new DroughtAreaPlot();
 droughtAreaPlot.initPlot();
 
@@ -74,6 +71,8 @@ $(window).on('resize', function(){
     clearTimeout(resizeDelay);
     resizeDelay = setTimeout(reloadPlots, 500);
 });
+
+// ============ Fuctions ====================
 
 function initModals() {
     $('.modal-button').hide();
@@ -229,7 +228,6 @@ async function loadFires(year, state) {
     }
     return this.fires[year][state];
 }
-
 
 /**
  * Plot the firest on the map based on the supplied filters
@@ -391,7 +389,7 @@ function plotFireDroughtHist(fireData, state, from, to) {
 
 
 /**
- * Load the d
+ * Update the drought vs area plot for the data within a given range
  * @param startDate
  * @param endDate
  * @param steps
@@ -514,6 +512,9 @@ function reloadPlots() {
     fireCauseBarChart.redraw();
 }
 
+/*
+ * Initialize the timeline UI element and register input handlers
+ */
 function initTimeline(){
     updateInitText("Loading timeline");
     var lang = "en-US";
@@ -555,6 +556,9 @@ function initTimeline(){
     initUI();
 }
 
+/*
+ * Initialize UI behavior and input handlers
+ */
 function initUI() {
     d3.selectAll(".menu-item a").on("click", function(e, d) {
         d3.select(".plot-container .empty").style("display", "none");
@@ -587,6 +591,9 @@ function initUI() {
     });
 }
 
+/*
+ * pause the running animation
+ */
 function pauseAnimate(){
     if (uiState.animationPaused){
         uiState.animationPaused = false;
@@ -599,6 +606,9 @@ function pauseAnimate(){
     }
 }
 
+/*
+ * Start and schedule the animation on a regular interval
+ */
 function startAnimate() {
     uiState.animationActive = true;
     if (uiState.animationPaused){
@@ -643,6 +653,9 @@ function startAnimate() {
     }, 1500);
 }
 
+/*
+ * Plot the state outlines on the map
+ */
 async function plotStates() {
     let self = this;
     updateInitText("Plotting US states");
@@ -738,6 +751,9 @@ function drawGradient() {
 
 }
 
+/*
+ * Draw the county outlines on the map
+ */
 function plotCounties() {
     updateInitText("Plotting US counties");
     return new Promise((resolve, reject) => {
@@ -766,6 +782,12 @@ function plotCounties() {
     });
 }
 
+/*
+ * Fetch and load the drought data for a given year and state
+ * @param year              The year for which the data is being fetched
+ * @param state             The US state for which the data is being fetched, optional. If unspecified, all states are fetched
+ * @returns Promise<*>
+ */
 async function loadDrought(year, state) {
     updateInitText("Loading drought data");
     if(state === undefined) {
@@ -792,6 +814,9 @@ async function loadDrought(year, state) {
     return this.drought[year][state];
 }
 
+/*
+ * Fetch and load the burn severity dataset
+ */
 async function loadMTBS(){
     if (window.mtbs != null) {
         return

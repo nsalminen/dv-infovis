@@ -363,7 +363,13 @@ function updatePlots() {
     getDrougtData(from, to,100,state)
     // plotFireDroughtHist(state);
     let dt = Date.now();
-    loadFires(from.getFullYear(), state).then(data => {
+
+    let yearStart = from.getFullYear();
+    let yearEnd = to.getFullYear();
+    let years = Array.apply(null, Array(yearEnd - yearStart+ 1)).map(function (x, i) { return i + yearStart; })
+
+    Promise.all(years.map(s =>    loadFires(s, state))).then(dataPerYear => {
+        let data = dataPerYear.flat();
         let dataslice = getSliceWithinRange(from, to, data);
         console.log("resulting data", dataslice, from, to, state)
         fireTimePlot.plot(from, to, dataslice);
@@ -440,6 +446,18 @@ function initUI() {
         // Set currently selected plot to visible
         // el.attr("data-graph")
     });
+
+    d3.selectAll(".resize-button-right").on("click", function(e, d) {
+        d3.selectAll(".right-column")
+            .classed("col-5", false).classed("col-7", true);
+        d3.selectAll(".left-column").classed("col-5", true).classed("col-7", false);
+        reloadPlots();
+    });
+    d3.selectAll(".resize-button-left").on("click", function(e, d) {
+        d3.selectAll(".left-column").classed("col-5", false).classed("col-7", true);
+        d3.selectAll(".right-column").classed("col-5", true).classed("col-7", false);
+        reloadPlots();
+    });
 }
 
 function pauseAnimate(){
@@ -452,6 +470,7 @@ function pauseAnimate(){
         $(".timeline-control-container .pause-button").addClass("active");
         $(".timeline-control-container .pause-button").text("Paused");
     }
+    clearDrought();
 }
 
 function startAnimate() {
@@ -738,6 +757,12 @@ function colorElement(d) {
     if (element !== null) {
         element.style.fill = calculateColor(d);
     }
+}
+
+function clearDrought() {
+    //TODO fix
+    let test = d3.selectAll(".counties").selectAll("path");
+    test.attr("style", "fill: light-gray");
 }
 
 async function colorDrought(date, state) {

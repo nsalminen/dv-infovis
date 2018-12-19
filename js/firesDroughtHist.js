@@ -26,7 +26,7 @@ function FireDroughtPlot() {
             self.plot.selectAll("rect")
                 .data(self.bins)
                 .transition()
-                .duration(500)
+                .duration(duration)
                 .attr("transform", function(d) {
                     return "translate(" + self.x(d.x0) + "," +  self.y(d.length)  + ")"; }) //self.y(d.length)
                 .attr("fill", "blue")

@@ -35,7 +35,7 @@ function FireCauseBarChart() {
                 .data(plotData)
                 .transition()
                 .duration(duration)
-                .attr("fill", "blue")
+                .attr("fill", "#a6cee3")
                 .attr("x", function (d) {
                     return self.x(d.cause)
                 })

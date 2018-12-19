@@ -29,7 +29,7 @@ function FireDroughtPlot() {
                 .duration(duration)
                 .attr("transform", function(d) {
                     return "translate(" + self.x(d.x0) + "," +  self.y(d.length)  + ")"; }) //self.y(d.length)
-                .attr("fill", "blue")
+                .attr("fill", "#a6cee3")
                 .attr("x", gapSize + 1)
                 .attr("width", binWidth)
                 .attr("height", function(d) {

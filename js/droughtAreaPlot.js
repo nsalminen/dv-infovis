@@ -22,13 +22,25 @@ function DroughtAreaPlot() {
 
         self.keys = ["None", "D0", "D1", "D2", "D3", "D4"];
         self.colors = d3.scaleOrdinal(d3.schemeCategory10).domain(self.keys).range(
-        [
+    /*    [
         '#4daf4a',
         '#377eb8',
         '#984ea3',
         '#ffff33',
         '#ff7f00',
-        '#e41a1c']);
+        '#e41a1c']
+        */
+
+        [
+        '#ccebc5',
+        '#b3cde3',
+        '#decbe4',
+        '#ffffcc',
+        '#fed9a6',
+        '#fbb4ae',]
+
+
+    );
 
 
         self.stack = d3.stack().keys(self.keys)

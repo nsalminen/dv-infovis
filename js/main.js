@@ -346,13 +346,14 @@ function plotUS() {
     updateInitText("Plotting map");
     d3.csv("data/states.csv", function(data) {
        states = data;
-    });
+
     plotCounties()
         .then(result => plotStates())
         .then(result => loadMTBS())
         .then(result => loadDrought(2001))
         .then(result => startAnimate())
         .then(result => finishInit());
+    });
 }
 
 function updatePlots() {

@@ -7,8 +7,6 @@ function FireTimePlot() {
         initBasisPlot(self, '#graphFiresTimePlot', 'Date', 'Number of fires');
         setPlotSizeValues(self);
 
-
-		// @TODO: Update
         self.histogram = d3.histogram()
             .value(function(d) { return d; })
             .domain(self.x.domain())
@@ -37,11 +35,7 @@ function FireTimePlot() {
         }
     }
 	function plot(startDate, endDate, plotData) {
-
-
-        // Get entries per day (@TODO: filter out fires with missing end days if this plot is too chaotic?)
-        // @TODO: perhaps make into a promise instead?
-
+        // Get entries per day
         self.entries = [];
 
 		let maxNumberOfFires = 0;
@@ -59,34 +53,8 @@ function FireTimePlot() {
 
 
         // Update x axis
-        // @TODO: Add year markers?
         self.x.domain([startDate, endDate]);
 		self.y.domain([0,maxNumberOfFires]);
-
-
-        // Plot entries per day
-        // self.plotLine.datum(entries).attr("d", line);
-    
-        // self.plot.selectAll('rect').data(bins).exit().remove();
-        // self.plot.selectAll('rect').data(bins).enter().append("rect");
-        // self.plot.selectAll("rect")
-        //     .data(bins)
-        //     .transition()
-        //     .duration(500)
-        //     .attr("transform", function(d) {
-        //         return "translate(" + self.x(d.x0) + "," +  self.y(d.length)  + ")"; }) //self.y(d.length)
-        //     .attr("fill", "blue")
-        //     .attr("x", gapSize)
-        //     .attr("self.width", self.width)
-        //     .attr("height", function(d) {
-        //         return self.height- self.y(d.length)});
-
-
-        // // add the y Axis
-        // self.yAxis.transition().call(d3.axisLeft(self.y));
-
-        // console.log("Berend: Plot complete")
-
 		redraw();
 	}
 	return {

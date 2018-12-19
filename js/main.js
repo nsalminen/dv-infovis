@@ -38,7 +38,8 @@ window.uiState = {
     currentState: "TX",
     animationActive: false,
     animationPaused: false,
-    mtbsCumulative: false
+    mtbsCumulative: false,
+    selectedPlot: ""
 };
 
 window.stateFipsCodes = {'01': 'AL', '02': 'AK', '04': 'AZ', '05': 'AR', '06': 'CA', '08': 'CO', '09': 'CT', '10': 'DE', '11': 'DC', '12': 'FL', '13': 'GA', '15': 'HI', '16': 'ID', '17': 'IL', '18': 'IN', '19': 'IA', '20': 'KS', '21': 'KY', '22': 'LA', '23': 'ME', '24': 'MD', '25': 'MA', '26': 'MI', '27': 'MN', '28': 'MS', '29': 'MO', '30': 'MT', '31': 'NE', '32': 'NV', '33': 'NH', '34': 'NJ', '35': 'NM', '36': 'NY', '37': 'NC', '38': 'ND', '39': 'OH', '40': 'OK', '41': 'OR', '42': 'PA', '44': 'RI', '45': 'SC', '46': 'SD', '47': 'TN', '48': 'TX', '49': 'UT', '50': 'VT', '51': 'VA', '53': 'WA', '54': 'WV', '55': 'WI', '56': 'WY', '60': 'AS', '64': 'FM', '66': 'GU', '68': 'MH', '69': 'MP', '70': 'PW', '72': 'PR', '74': 'UM', '78': 'VI'}
@@ -62,6 +63,7 @@ fireCauseBarChart.initPlot();
 
 //updatePlots();
 initMapControls();
+initModals();
 
 var resizeDelay;
 $(window).on('resize', function(){
@@ -69,7 +71,20 @@ $(window).on('resize', function(){
     resizeDelay = setTimeout(reloadPlots, 500);
 });
 
-function initMapControls(){
+function initModals() {
+    $('.modal-button').hide();
+    $('.modal-button').click(function() {
+        console.log('info-' + uiState.selectedPlot);
+        $('#info-' + uiState.selectedPlot).addClass("active");
+    });
+
+    $('.modal .btn-clear').click(function() {
+        console.log('info-' + uiState.selectedPlot);
+        $('#info-' + uiState.selectedPlot).removeClass("active");
+    });
+}
+
+function initMapControls() {
     $('input:checkbox').change(
         function(){
                 switch ($(this).attr('id')) {
@@ -410,12 +425,17 @@ function initTimeline(){
 function initUI() {
     d3.selectAll(".menu-item a").on("click", function(e, d) {
         d3.select(".plot-container .empty").style("display", "none");
-        let id = d3.select(this).attr("data-graph");
-
+        uiState.selectedPlot = d3.select(this).attr("data-graph");
+        console.log('info-' + uiState.selectedPlot);
+        if ($('#info-' + uiState.selectedPlot).length) {
+            $('.modal-button').show();
+        } else {
+            $('.modal-button').hide();
+        }
         // Hide all other plot graphs
         d3.selectAll(".plot-container .graph").style("display", "none");
 
-        let selectedPlot = d3.select(d3.select("#"+id).node());
+        let selectedPlot = d3.select(d3.select("#"+uiState.selectedPlot).node());
         selectedPlot.style("display", "block")
         // Set currently selected plot to visible
         // el.attr("data-graph")

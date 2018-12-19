@@ -14,6 +14,34 @@
 <body>
 
 <div class="container bg-gray">
+    <div class="modal" id="info-graphDroughtArea">
+        <a href="#close" class="modal-overlay" aria-label="Close"></a>
+        <div class="modal-container">
+            <div class="modal-header">
+                <a href="#close" class="btn btn-clear float-right" aria-label="Close"></a>
+                <div class="modal-title h5">Explanation of drought levels</div>
+            </div>
+            <div class="modal-body">
+                <div class="content">
+                    For each county the land is divided in five categories and each category gets assigned the percentage of land that follows in this category.
+                    Below is a table with the different categories.
+                    The combined drought severity is calculated as follows: <var>0.2 * D0 + 0.4 * D1 + 0.6 * D2 + 0.8 * D3 + 1.0 * D4</var>.
+                    <ul>
+                        <li>None: no drought</li>
+                        <li>D0: abnormally dry</li>
+                        <li>D1: moderate drought</li>
+                        <li>D2: severe drought category</li>
+                        <li>D3: extreme drought</li>
+                        <li>D4: exceptional drought</li>
+                    </ul>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                Source: ...
+            </div>
+        </div>
+    </div>
     <div class="fade empty">
         <div class="empty-icon">
             <div class="loading loading-lg"></div>
@@ -38,6 +66,7 @@
         <div class="column col-5 upper">
             <div class="panel bg-white">
                 <div class="panel-header text-center">
+                    <button class="btn btn-action s-circle modal-button">?</button>
                     <div class="dropdown">
                         <a href="#" class="btn btn-link dropdown-toggle" tabindex="0">
                             Pick a plot<i class="icon icon-caret"></i>

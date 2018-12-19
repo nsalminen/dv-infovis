@@ -38,8 +38,13 @@ window.uiState = {
     currentState: "TX",
     animationActive: false,
     animationPaused: false,
+    plotDrought: true,
+    plotMtbs: false,
     mtbsCumulative: false,
-    selectedPlot: ""
+    selectedPlot: "",
+    plotFires: false,
+    firesCumulative: false,
+    fireFilters: getFireFilters()
 };
 
 window.stateFipsCodes = {'01': 'AL', '02': 'AK', '04': 'AZ', '05': 'AR', '06': 'CA', '08': 'CO', '09': 'CT', '10': 'DE', '11': 'DC', '12': 'FL', '13': 'GA', '15': 'HI', '16': 'ID', '17': 'IL', '18': 'IN', '19': 'IA', '20': 'KS', '21': 'KY', '22': 'LA', '23': 'ME', '24': 'MD', '25': 'MA', '26': 'MI', '27': 'MN', '28': 'MS', '29': 'MO', '30': 'MT', '31': 'NE', '32': 'NV', '33': 'NH', '34': 'NJ', '35': 'NM', '36': 'NY', '37': 'NC', '38': 'ND', '39': 'OH', '40': 'OK', '41': 'OR', '42': 'PA', '44': 'RI', '45': 'SC', '46': 'SD', '47': 'TN', '48': 'TX', '49': 'UT', '50': 'VT', '51': 'VA', '53': 'WA', '54': 'WV', '55': 'WI', '56': 'WY', '60': 'AS', '64': 'FM', '66': 'GU', '68': 'MH', '69': 'MP', '70': 'PW', '72': 'PR', '74': 'UM', '78': 'VI'};
@@ -90,30 +95,88 @@ function initModals() {
     });
 }
 
+function getFireFilters() {
+    let filters = new Set();
+    if ($("#cause-miscellaneous").is(':checked')) {
+        filters.add(9.0);
+    }
+    if ($("#cause-lightning").is(':checked')) {
+        filters.add(1.0);
+    }
+    if ($("#cause-debris-burning").is(':checked')) {
+        filters.add(5.0);
+    }
+    if ($("#cause-campfire").is(':checked')) {
+        filters.add(4.0);
+    }
+    if ($("#cause-equipment-use").is(':checked')) {
+        filters.add(2.0);
+    }
+    if ($("#cause-arson").is(':checked')) {
+        filters.add(7.0);
+    }
+    if ($("#cause-children").is(':checked')) {
+        filters.add(8.0);
+    }
+    if ($("#cause-railroad").is(':checked')) {
+        filters.add(6.0);
+    }
+    if ($("#cause-smoking").is(':checked')) {
+        filters.add(3.0);
+    }
+    if ($("#cause-powerline").is(':checked')) {
+        filters.add(11.0);
+    }
+    if ($("#cause-structure").is(':checked')) {
+        filters.add(12.0);
+    }
+    if ($("#cause-fireworks").is(':checked')) {
+        filters.add(10.0);
+    }
+    if ($("#cause-missing").is(':checked')) {
+        filters.add(13.0);
+    }
+    return filters;
+}
+
 function initMapControls() {
     $('input:checkbox').change(
-        function(){
-                switch ($(this).attr('id')) {
-                    case "drought-switch":
-                        if ($(this).is(':checked')) {
-                            startAnimate();
-                        } else {
-                            clearInterval(animationInterval);
-                            clearDrought();
-                        }
-                        break;
-                    case "fire-switch":
-
-                        break;
-                    case "fire-cum-switch":
-                        break;
-                    case "burn-switch":
-                        break;
-                    case "burn-cum-switch":
-                        uiState.mtbsCumulative = $(this).is(':checked');
-                        break;
-            }
-        });
+        function() {
+            switch ($(this).attr('id')) {
+                case "drought-switch":
+                    uiState.plotDrought = $(this).is(':checked');
+                    if (!uiState.plotDrought)
+                    {
+                        clearDrought();
+                    }
+                    // if ($(this).is(':checked')) {
+                    //     startAnimate();
+                    // } else {
+                    //     clearInterval(animationInterval);
+                    // }
+                    break;
+                case "fire-switch":
+                    uiState.plotFires = $(this).is(':checked');
+                    if (!uiState.plotFires)
+                    {
+                        clearFires();
+                    }
+                    break;
+                case "fire-cum-switch":
+                    uiState.firesCumulative = $(this).is(':checked');
+                    break;
+                case "burn-switch":
+                    uiState.plotMtbs = $(this).is(':checked');
+                    break;
+                case "burn-cum-switch":
+                    uiState.mtbsCumulative = $(this).is(':checked');
+                    break;
+                default:
+                    // Assuming all other causes are the ones starting with cause- (cause selectors)
+                    uiState.fireFilters = getFireFilters();
+                    break;
+        }
+    });
 }
 
 async function loadFires(year, state) {
@@ -139,19 +202,21 @@ async function loadFires(year, state) {
     return this.fires[year][state];
 }
 
-async function plotFires(startDate, endDate, state, filterSet) {
+
+async function plotFires(startDate, endDate, filterSet, state) {
     if (state === undefined) {
-        // state = "CA";           // @TODO: Return Promise.all instead
-        return Promise.all(this.states.map(s => plotFires(startDate, endDate, s.Code, filterSet)));
+        console.log("PlotFires called!");
+        return Promise.all(this.states.map(s => plotFires(startDate, endDate, filterSet, s.Code)));
     }
 
     return new Promise((resolve, reject) => {
-        let fireYear = date.getFullYear();
+        let fireYear = startDate.getFullYear();
         
+        // @TODO: If multiple years, fetch all and combine.
         loadFires(fireYear, state).then(function (firedata) {
             // Comb through csv to figure out what data to keep
             let newFireData = firedata.filter(function (e) {
-                return !(e["FIRE_SIZE_CLASS"] === "B") && filterSet.has(e['STAT_CAUSE_CODE']);
+                return filterSet.has(parseFloat(e['STAT_CAUSE_CODE']));
             });
             let slice = getSliceWithinRange(startDate, endDate, newFireData);
 
@@ -162,16 +227,8 @@ async function plotFires(startDate, endDate, state, filterSet) {
                 .attr("cx", function (d) { return projection([parseFloat(d['LONGITUDE']), parseFloat(d['LATITUDE'])])[0]; })
                 .attr("cy", function (d) { return projection([parseFloat(d['LONGITUDE']), parseFloat(d['LATITUDE'])])[1]; })
                 .attr("r", "2px")
-                .attr("fill", function(d) {
-                    if (d['FIRE_SIZE_CLASS'] === 'B') {
-                        return 'blue';
-                    }
-                    if (d['FIRE_SIZE_CLASS'] === 'C') {
-                        return 'yellow';
-                    }
-                    return 'red';
-                })
-                .attr("class", state);
+                .attr("fill", "yellow")
+                .attr("class", state + " fire");
             svg.selectAll("circle."+state)
                 .data(slice).exit().remove();
 
@@ -179,6 +236,55 @@ async function plotFires(startDate, endDate, state, filterSet) {
         });
     });
 }
+
+// async function plotFires(date, state) {
+//     if (state === undefined) {
+//         // state = "CA";           // @TODO: Return Promise.all instead
+//         return Promise.all(this.states.map(s => plotFires(date, s.Code)));
+//     }
+
+//     return new Promise((resolve, reject) => {
+//         let fireYear = date.getFullYear()
+        
+//         loadFires(fireYear, state).then(function (firedata) {
+//             // Comb through csv to figure out what data to keep
+//             let endDate = addDays(date, 30);
+
+//             // @TODO: Custom filters for fire size class
+//             let newFireData = firedata.filter(function (e) {
+//                 return !(e["FIRE_SIZE_CLASS"] == "B");
+//             });
+//             let slice = getSliceWithinRange(date, endDate, newFireData);
+
+//             // if (state === "CA") {
+//             //     console.log("output for CA", slice)
+//             // }
+
+//             // Plot fires
+//             svg.selectAll("circle."+state)
+//                 .data(slice).enter()
+//                 .append("circle")
+//                 .attr("cx", function (d) { return projection([parseFloat(d['LONGITUDE']), parseFloat(d['LATITUDE'])])[0]; })
+//                 .attr("cy", function (d) { return projection([parseFloat(d['LONGITUDE']), parseFloat(d['LATITUDE'])])[1]; })
+//                 .attr("r", "2px")
+//                 .attr("fill", function(d) {
+//                     if (d['FIRE_SIZE_CLASS'] == 'B') {
+//                         return 'blue';
+//                     }
+//                     if (d['FIRE_SIZE_CLASS'] == 'C') {
+//                         return 'yellow';
+//                     }
+//                     return 'red';
+//                 })
+//                 .attr("class", state)
+//             svg.selectAll("circle."+state)
+//                 .data(slice).exit().remove()
+
+//             resolve();
+//         });
+//     });
+// }
+
 
 function getSliceWithinRange(startDate, endDate, firedata)
 {
@@ -490,19 +596,31 @@ function startAnimate() {
             $('.map-subtitle').fadeOut(200, function() {
                 $(this).text(date.toLocaleString('en-us', { month: "long" }) + ' ' + date.getFullYear()).fadeIn(300);
             });
-            let start = Date.now();
-            let colorPromise = colorDrought(date);
-            plotMTBS(date);
+
+            if (uiState.plotDrought)
+            {
+                let colorPromise = colorDrought(date);    
+                colorPromise.then(result => {
+                    loadDrought(date.getFullYear())
+                });
+            }
+            if (uiState.plotMtbs) {
+                plotMTBS(date);    
+            }
+            if (uiState.plotFires) {
+                // @TODO: Call plotFires with the correct data
+                if (uiState.firesCumulative) {
+                    plotFires(uiState.from, uiState.to, uiState.fireFilters);
+                } else {
+                    plotFires(date, date, uiState.fireFilters);
+                }
+            }
+            
             date.setMonth(date.getMonth() + 1);
             if (date >= uiState.to) {
                 date = new Date(uiState.from.getTime());
             }
-            colorPromise.then(result => {
-                let end = Date.now();
-                let diff = end - start;
-                //console.log("done in: " + diff);
-                loadDrought(date.getFullYear())
-            });
+
         }
     }, 1500);
 }
@@ -768,6 +886,12 @@ function clearDrought() {
     //TODO fix
     let test = d3.selectAll(".counties").selectAll("path");
     test.attr("style", "fill: light-gray");
+}
+
+function clearFires()
+{
+    // @TODO: See if this works
+    d3.selectAll(".fire").remove()
 }
 
 async function colorDrought(date, state) {

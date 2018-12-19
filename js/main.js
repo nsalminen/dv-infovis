@@ -66,7 +66,7 @@ let fireCauseBarChart = new FireCauseBarChart();
 fireCauseBarChart.initPlot();
 // @TODO: Hook to update on state select
 
-//updatePlots();
+updatePlots();
 initMapControls();
 initModals();
 
@@ -140,6 +140,23 @@ function getFireFilters() {
 }
 
 function initMapControls() {
+    let keys = [];
+    for (var key in window.stateFipsCodes){
+        keys.push(window.stateFipsCodes[key]);
+    }
+    keys.sort();
+    var i;
+    for (i = 0; i < keys.length; ++i) {
+        console.log(keys[i]);
+        $(".state-select").append(new Option(keys[i], keys[i]));
+    }
+    $(".state-select").val(uiState.currentState);
+
+    $(".state-select").change(function() {
+        uiState.currentState = $(this).find(':selected').text();
+        updatePlots();
+    });
+
     $('input:checkbox').change(
         function() {
             switch ($(this).attr('id')) {
@@ -487,6 +504,7 @@ function updatePlots() {
     let to = uiState.to;
     let state = uiState.currentState;
 
+    $(".state-select").val(uiState.currentState);
     updateDroughtAreaPlot(from, to,100,state);
 
     // get the years that should be loaded

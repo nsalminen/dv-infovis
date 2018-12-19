@@ -85,15 +85,17 @@ function initModals() {
 }
 
 function initMapControls() {
+
     $('input:checkbox').change(
         function(){
                 switch ($(this).attr('id')) {
                     case "drought-switch":
-                        if ($(this).is(':checked'))
+                        if ($(this).is(':checked')) {
                             startAnimate();
-                        else
+                        } else {
                             clearInterval(animationInterval);
-                            // @TODO clear map from drought overlay
+                            clearDrought();
+                        }
                         break;
                     case "fire-switch":
 

@@ -350,7 +350,7 @@ function plotUS() {
     plotCounties()
         .then(result => plotStates())
         .then(result => loadMTBS())
-        .then(result => loadDrought(2001))
+        .then(result => loadDrought(2000))
         .then(result => startAnimate())
         .then(result => finishInit());
     });
@@ -546,10 +546,13 @@ async function plotStates() {
 function drawGradient() {
     let width = 300;
     let height = 20;
+
+    let legend = d3.select('#gradient').append('svg').attr("height", 40);
+
     //way to complicate to create a legend in the center
-    let legend = svg.append('g')
-        .attr("transform", "translate(" + (-width/2) + "," + 0  + ")")
-        .append('svg').attr("x","50%");
+  //  let legend = svg.append('g')
+    //    .attr("transform", "translate(" + (-width/2) + "," + 0  + ")")
+      //  .append('svg').attr("x","50%");
     let defs = legend.append("defs");
 
     let linearGradient = defs.append("linearGradient")

@@ -64,7 +64,6 @@ fireTimePlot.initPlot();
 
 let fireCauseBarChart = new FireCauseBarChart();
 fireCauseBarChart.initPlot();
-// @TODO: Hook to update on state select
 
 updatePlots();
 initMapControls();
@@ -95,6 +94,9 @@ function initModals() {
     });
 }
 
+/*
+ * Fetch the currently selected set of filters
+ */
 function getFireFilters() {
     let filters = new Set();
     if ($("#cause-miscellaneous").is(':checked')) {
@@ -139,6 +141,9 @@ function getFireFilters() {
     return filters;
 }
 
+/**
+ * Set up the UI hooks for elements controlling the map
+ */
 function initMapControls() {
     let keys = [];
     for (var key in window.stateFipsCodes){
@@ -196,6 +201,12 @@ function initMapControls() {
     });
 }
 
+/*
+ * Fetch & Load new fire files into memory
+ * @param year              the year for which the data is fetched (integer)
+ * @param state             the two-letter state code for which the data is fetched
+ * @returns Promise<*>
+ */
 async function loadFires(year, state) {
     if (state === undefined) {
         return Promise.all(this.states.map(s => loadFires(year, s.Code)));
@@ -220,6 +231,14 @@ async function loadFires(year, state) {
 }
 
 
+/**
+ * Plot the firest on the map based on the supplied filters
+ * @param startDate         Fires that exist after this and before endDate are considered
+ * @param endDate           Fires that exist before this and after startDate are considered
+ * @param filterSet         Set of filters that determines
+ * @param state             Optional 2 lettter code identifying the US state for which the data should be plotted
+ * @returns Promise<*>
+ */
 async function plotFires(startDate, endDate, filterSet, state) {
     if (state === undefined) {
         console.log("PlotFires called!");
@@ -250,7 +269,7 @@ async function plotFires(startDate, endDate, filterSet, state) {
                 .attr("cx", function (d) { return projection([parseFloat(d['LONGITUDE']), parseFloat(d['LATITUDE'])])[0]; })
                 .attr("cy", function (d) { return projection([parseFloat(d['LONGITUDE']), parseFloat(d['LATITUDE'])])[1]; })
                 .attr("r", "2px")
-                .attr("fill", "yellow")
+                .attr("fill", "orange")
                 .attr("class", state + " fire");
             svg.selectAll("circle."+state)
                 .data(slice).exit().remove();
@@ -259,55 +278,9 @@ async function plotFires(startDate, endDate, filterSet, state) {
     })));
 }
 
-// async function plotFires(date, state) {
-//     if (state === undefined) {
-//         // state = "CA";           // @TODO: Return Promise.all instead
-//         return Promise.all(this.states.map(s => plotFires(date, s.Code)));
-//     }
-
-//     return new Promise((resolve, reject) => {
-//         let fireYear = date.getFullYear()
-        
-//         loadFires(fireYear, state).then(function (firedata) {
-//             // Comb through csv to figure out what data to keep
-//             let endDate = addDays(date, 30);
-
-//             // @TODO: Custom filters for fire size class
-//             let newFireData = firedata.filter(function (e) {
-//                 return !(e["FIRE_SIZE_CLASS"] == "B");
-//             });
-//             let slice = getSliceWithinRange(date, endDate, newFireData);
-
-//             // if (state === "CA") {
-//             //     console.log("output for CA", slice)
-//             // }
-
-//             // Plot fires
-//             svg.selectAll("circle."+state)
-//                 .data(slice).enter()
-//                 .append("circle")
-//                 .attr("cx", function (d) { return projection([parseFloat(d['LONGITUDE']), parseFloat(d['LATITUDE'])])[0]; })
-//                 .attr("cy", function (d) { return projection([parseFloat(d['LONGITUDE']), parseFloat(d['LATITUDE'])])[1]; })
-//                 .attr("r", "2px")
-//                 .attr("fill", function(d) {
-//                     if (d['FIRE_SIZE_CLASS'] == 'B') {
-//                         return 'blue';
-//                     }
-//                     if (d['FIRE_SIZE_CLASS'] == 'C') {
-//                         return 'yellow';
-//                     }
-//                     return 'red';
-//                 })
-//                 .attr("class", state)
-//             svg.selectAll("circle."+state)
-//                 .data(slice).exit().remove()
-
-//             resolve();
-//         });
-//     });
-// }
-
-
+/**
+ * Returns a subset of the firedata input that contains only the fires existing within the startDate and endDate
+ */
 function getSliceWithinRange(startDate, endDate, firedata)
 {
     var end;
@@ -485,6 +458,10 @@ function updateInitText(text) {
     });
 }
 
+
+/*
+ * Plot the US map outlines and start the animation.
+ */
 function plotUS() {
     updateInitText("Plotting map");
     d3.csv("data/states.csv", function(data) {
@@ -499,6 +476,9 @@ function plotUS() {
     });
 }
 
+/*
+ * Update the plots based on the new data
+ */
 function updatePlots() {
     let from = uiState.from;
     let to = uiState.to;
@@ -521,7 +501,6 @@ function updatePlots() {
 
         plotFireDroughtHist(dataslice, state, from, to);
         plotFireCauseBar(dataslice)
-        // @TODO: Call update on firesTimePlot() with this data
     });
 }
 
@@ -648,7 +627,6 @@ function startAnimate() {
                 plotMTBS(date);    
             }
             if (uiState.plotFires) {
-                // @TODO: Call plotFires with the correct data
                 if (uiState.firesCumulative) {
                     plotFires(uiState.from, uiState.to, uiState.fireFilters);
                 } else {
@@ -940,14 +918,12 @@ function colorElement(d) {
 }
 
 function clearDrought() {
-    //TODO fix
     let test = d3.selectAll(".counties").selectAll("path");
     test.attr("style", "fill: light-gray");
 }
 
 function clearFires()
 {
-    // @TODO: See if this works
     d3.selectAll(".fire").remove()
 }
 
